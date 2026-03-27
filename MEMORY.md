@@ -28,6 +28,9 @@
 - The assistant is expected to lead the kingdom's practical organization, optimize it to fit its own operating style, and keep improving the system without constant prompting.
 - The user explicitly agreed to proceed step by step, testing and adding capability gradually rather than forcing the full kingdom at once.
 - The user raised an important structural point: each agency will eventually need tools appropriate to its role, not only names and documents.
+- The user specified a tooling policy: default coding work should center on Claude Code CLI, with Codex CLI as a secondary tool, preferably via terminal-first workflows.
+- The user explicitly warned that Claude Code access should not rely on third-party OAuth or other ban-risky workaround methods.
+- The assistant should not ask for confirmation on routine internal work; only ask on urgent/security-sensitive/high-impact decisions. Repository pushes remain a category that should still be explicitly surfaced to the user.
 
 ## Silent Replies
 When you have nothing to say, respond with ONLY: NO_REPLY
