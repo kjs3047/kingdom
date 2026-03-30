@@ -1,55 +1,19 @@
-import { spawn } from 'node:child_process';
-import process from 'node:process';
+import { ensurePortAvailable, safeKill, spawnDevServer, waitForServer } from './e2e-helpers.mjs';
 
 const PORT = 43111;
 const BASE_URL = `http://127.0.0.1:${PORT}`;
 let server;
 
-function wait(ms) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
-async function ensurePortClosed() {
-  for (let i = 0; i < 20; i += 1) {
-    try {
-      const response = await fetch(`${BASE_URL}/health`);
-      if (response.ok) {
-        await wait(250);
-        continue;
-      }
-    } catch {
-      return;
-    }
-  }
-  throw new Error('port 43111 is already occupied before E2E start');
-}
-
-async function waitForServer() {
-  for (let i = 0; i < 40; i += 1) {
-    try {
-      const response = await fetch(`${BASE_URL}/health`);
-      if (response.ok) return;
-    } catch {
-      // retry
-    }
-    await wait(500);
-  }
-  throw new Error('server did not become ready in time');
-}
-
 async function run() {
-  await ensurePortClosed();
-  server = spawn(process.platform === 'win32' ? 'cmd' : 'npm', process.platform === 'win32' ? ['/c', 'npm', 'run', 'dev:server'] : ['run', 'dev:server'], {
+  await ensurePortAvailable(PORT, { autoKill: true });
+  server = spawnDevServer({
     cwd: process.cwd(),
-    env: { ...process.env, PORT: String(PORT), KINGDOM_AGENT_MODE: 'mock' },
-    stdio: ['ignore', 'pipe', 'pipe'],
+    port: PORT,
+    env: { KINGDOM_AGENT_MODE: 'mock' },
   });
 
-  server.stdout.on('data', (chunk) => process.stdout.write(chunk));
-  server.stderr.on('data', (chunk) => process.stderr.write(chunk));
-
   try {
-    await waitForServer();
+    await waitForServer(BASE_URL);
 
     const initialResponse = await fetch(`${BASE_URL}/api/kingdom/respond`, {
       method: 'POST',
@@ -148,14 +112,12 @@ async function run() {
       ),
     );
   } finally {
-    server.kill('SIGTERM');
+    safeKill(server);
   }
 }
 
 run().catch((error) => {
   console.error(`\n[E2E FAIL] ${error.message}`);
-  if (server) {
-    server.kill('SIGTERM');
-  }
+  safeKill(server);
   process.exitCode = 1;
 });
