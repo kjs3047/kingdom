@@ -51,12 +51,23 @@ export interface ReviewDecision {
   requiredForExternalDelivery: boolean;
 }
 
+export interface WorkflowState {
+  phase: 'draft' | 'review_required' | 'approved' | 'blocked';
+  nextAction: string;
+}
+
 export interface FinalResponse {
   briefing: string;
   routing: RoutingDecision;
   results: AgentResult[];
   review: ReviewDecision;
+  workflow: WorkflowState;
   finalMessage: string;
   deliveryAllowed: boolean;
   timestamp: string;
+}
+
+export interface RespondOptions {
+  reviewOverrideStatus?: ReviewStatus;
+  reviewOverrideReason?: string;
 }

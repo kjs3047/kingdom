@@ -3,7 +3,8 @@ import express from 'express';
 import cors from 'cors';
 import { z } from 'zod';
 import { runChiefAgent } from './chiefAgent';
-import { persistSessionLog } from './memoryStore';
+import { persistSessionLog, readSessionLog } from './memoryStore';
+import type { ReviewStatus } from './types';
 
 const app = express();
 const port = Number(process.env.PORT || 43110);
@@ -17,6 +18,14 @@ const requestSchema = z.object({
   externalDelivery: z.boolean().optional(),
   sensitive: z.boolean().optional(),
   requester: z.string().optional(),
+  reviewOverrideStatus: z.enum(['not_required', 'approved', 'revision_requested', 'blocked']).optional(),
+  reviewOverrideReason: z.string().optional(),
+});
+
+const approveSchema = z.object({
+  logId: z.string().min(1),
+  status: z.enum(['approved', 'revision_requested', 'blocked']),
+  reason: z.string().min(1),
 });
 
 app.get('/health', (_req, res) => {
@@ -31,8 +40,17 @@ app.get('/api/kingdom/policies', (_req, res) => {
       reviewRequiredForExternalDelivery: true,
       reviewRequiredForSensitive: true,
       leadAgentSingleOwner: true,
+      deliveryBlockedUntilApproved: true,
     },
   });
+});
+
+app.get('/api/kingdom/logs/:id', (req, res) => {
+  const data = readSessionLog(req.params.id);
+  if (!data) {
+    return res.status(404).json({ ok: false, error: 'log not found' });
+  }
+  return res.json({ ok: true, data });
 });
 
 app.post('/api/kingdom/respond', (req, res) => {
@@ -42,10 +60,32 @@ app.post('/api/kingdom/respond', (req, res) => {
     return res.status(400).json({ ok: false, error: parsed.error.flatten() });
   }
 
-  const response = runChiefAgent(parsed.data);
-  const logPath = persistSessionLog(parsed.data, response);
+  const { reviewOverrideStatus, reviewOverrideReason, ...request } = parsed.data;
+  const response = runChiefAgent(request, { reviewOverrideStatus, reviewOverrideReason });
+  const log = persistSessionLog(request, response);
 
-  return res.json({ ok: true, response, logPath });
+  return res.json({ ok: true, response, logId: log.id, logPath: log.filePath });
+});
+
+app.post('/api/kingdom/review/decision', (req, res) => {
+  const parsed = approveSchema.safeParse(req.body);
+
+  if (!parsed.success) {
+    return res.status(400).json({ ok: false, error: parsed.error.flatten() });
+  }
+
+  const existing = readSessionLog(parsed.data.logId);
+  if (!existing) {
+    return res.status(404).json({ ok: false, error: 'log not found' });
+  }
+
+  const response = runChiefAgent(existing.request, {
+    reviewOverrideStatus: parsed.data.status as ReviewStatus,
+    reviewOverrideReason: parsed.data.reason,
+  });
+  const log = persistSessionLog(existing.request, response);
+
+  return res.json({ ok: true, previousLogId: parsed.data.logId, response, logId: log.id, logPath: log.filePath });
 });
 
 app.listen(port, () => {
