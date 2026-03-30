@@ -44,6 +44,7 @@ Capture what matters. Decisions, context, things to remember. Skip the secrets u
 - When someone says "remember this" → update `memory/YYYY-MM-DD.md` or relevant file
 - When you learn a lesson → update AGENTS.md, TOOLS.md, or the relevant skill
 - When you make a mistake → document it so future-you doesn't repeat it
+- 진행이 멈췄던 이유와 재발 방지 규칙도 반드시 문서에 남긴다.
 - **Text > Brain** 📝
 
 ## Red Lines
