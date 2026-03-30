@@ -1,0 +1,24 @@
+{
+  agents: {
+    list: [
+      { id: "main", default: true },
+      { id: "strategy_planner" },
+      { id: "product_engineering" },
+      { id: "design_studio" },
+      { id: "audit_guard" },
+    ],
+  },
+  bindings: [
+    {
+      agentId: "main",
+      match: { channel: "telegram" },
+    },
+    {
+      agentId: "product_engineering",
+      match: {
+        channel: "telegram",
+        peer: { kind: "group", id: "-1001234567890:topic:42" },
+      },
+    },
+  ],
+}

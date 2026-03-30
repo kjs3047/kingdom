@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "RoutingDecision",
+  "type": "object",
+  "properties": {
+    "category": { "type": "string" },
+    "leadAgent": { "type": "string" },
+    "supportAgents": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "reviewRequired": { "type": "boolean" }
+  },
+  "required": ["category", "leadAgent", "supportAgents", "reviewRequired"]
+}
