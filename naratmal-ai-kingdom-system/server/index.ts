@@ -23,6 +23,18 @@ app.get('/health', (_req, res) => {
   res.json({ ok: true, service: 'telegram_gateway', time: new Date().toISOString() });
 });
 
+app.get('/api/kingdom/policies', (_req, res) => {
+  res.json({
+    ok: true,
+    rules: {
+      singleFrontDoor: true,
+      reviewRequiredForExternalDelivery: true,
+      reviewRequiredForSensitive: true,
+      leadAgentSingleOwner: true,
+    },
+  });
+});
+
 app.post('/api/kingdom/respond', (req, res) => {
   const parsed = requestSchema.safeParse(req.body);
 

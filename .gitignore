@@ -1,3 +1,7 @@
 .openclaw/
 node_modules/
 dist/
+naratmal-ai-kingdom-system/memory/
+kingdom_agents/**/HEARTBEAT.md
+kingdom_agents/**/IDENTITY.md
+kingdom_agents/**/TOOLS.md

@@ -15,6 +15,8 @@ export type RequestCategory =
   | 'operations'
   | 'sensitive';
 
+export type ReviewStatus = 'not_required' | 'approved' | 'revision_requested' | 'blocked';
+
 export interface UserRequest {
   message: string;
   attachments?: string[];
@@ -43,10 +45,18 @@ export interface RoutingDecision {
   tasks: AgentTask[];
 }
 
+export interface ReviewDecision {
+  status: ReviewStatus;
+  reason: string;
+  requiredForExternalDelivery: boolean;
+}
+
 export interface FinalResponse {
   briefing: string;
   routing: RoutingDecision;
   results: AgentResult[];
+  review: ReviewDecision;
   finalMessage: string;
+  deliveryAllowed: boolean;
   timestamp: string;
 }

@@ -20,3 +20,6 @@
 - 외부 제출용 문안과 민감 결과물은 audit_guard 관점 검수를 거친다.
 - 역할이 겹치면 chief_agent가 최종 조정한다.
 - MVP 단계에서는 단일 창구 UX를 절대 깨지 않는다.
+- 영의정은 필요 시 `sessions_spawn`으로 기관 agent를 호출한다.
+- 기획은 `strategy_planner`, 구현은 `product_engineering`, 문안은 `content_marketing`, 검수는 `audit_guard`를 우선한다.
+- "기관에 넘기겠다", "검수 올리겠다" 같은 표현은 실제 tool 호출이 accepted 된 뒤에만 말한다.
