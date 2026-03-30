@@ -10,6 +10,7 @@ function parseArgs(argv) {
     if (token === '--log-id') args.logId = argv[++i];
     else if (token === '--status') args.status = argv[++i];
     else if (token === '--reason') args.reason = argv[++i];
+    else if (token === '--revision-note') args.revisionNote = argv[++i];
   }
 
   if (!args.logId) throw new Error('missing --log-id');

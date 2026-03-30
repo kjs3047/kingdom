@@ -50,6 +50,7 @@ export interface ReviewActionItem {
   title: string;
   detail: string;
   severity: 'low' | 'medium' | 'high';
+  resolved?: boolean;
 }
 
 export interface ReviewDecision {
@@ -69,6 +70,15 @@ export interface ExecutionState {
   strategy: 'sequential' | 'parallel';
 }
 
+export interface ReviewHistoryEntry {
+  logId: string;
+  status: ReviewStatus;
+  reason: string;
+  reviewRound: number;
+  timestamp: string;
+  actionItems?: ReviewActionItem[];
+}
+
 export interface FinalResponse {
   briefing: string;
   routing: RoutingDecision;
@@ -80,6 +90,17 @@ export interface FinalResponse {
   finalMessage: string;
   deliveryAllowed: boolean;
   timestamp: string;
+}
+
+export interface SessionLogRecord {
+  id: string;
+  rootLogId: string;
+  parentLogId?: string;
+  reviewRound: number;
+  request: UserRequest;
+  response: FinalResponse;
+  createdAt: string;
+  reviewHistory: ReviewHistoryEntry[];
 }
 
 export interface RespondOptions {

@@ -17,6 +17,7 @@ const reviewActionItemSchema = z.object({
   title: z.string().min(1),
   detail: z.string().min(1),
   severity: z.enum(['low', 'medium', 'high']),
+  resolved: z.boolean().optional(),
 });
 
 const requestSchema = z.object({
@@ -106,8 +107,16 @@ app.post('/api/kingdom/review/decision', (req, res) => {
     }),
   )
     .then((response) => {
-      const log = persistSessionLog(existing.request, response);
-      return res.json({ ok: true, previousLogId: parsed.data.logId, response, logId: log.id, logPath: log.filePath });
+      const log = persistSessionLog(existing.request, response, { parentLog: existing });
+      return res.json({
+        ok: true,
+        previousLogId: parsed.data.logId,
+        response,
+        logId: log.id,
+        logPath: log.filePath,
+        reviewRound: existing.reviewRound + 1,
+        rootLogId: existing.rootLogId,
+      });
     })
     .catch((error: unknown) => {
       return res.status(500).json({ ok: false, error: error instanceof Error ? error.message : 'unknown error' });
