@@ -2,9 +2,9 @@ import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import { z } from 'zod';
-import { runChiefAgent } from './chiefAgent';
-import { persistSessionLog, readSessionLog } from './memoryStore';
-import type { ReviewStatus } from './types';
+import { runChiefAgent } from './chiefAgent.js';
+import { persistSessionLog, readSessionLog } from './memoryStore.js';
+import type { ReviewStatus } from './types.js';
 
 const app = express();
 const port = Number(process.env.PORT || 43110);

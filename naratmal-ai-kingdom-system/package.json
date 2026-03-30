@@ -7,8 +7,12 @@
     "dev": "vite",
     "dev:server": "tsx server/index.ts",
     "start:server": "tsx server/index.ts",
+    "server:start:detached": "powershell -ExecutionPolicy Bypass -File scripts/start-server.ps1",
+    "server:stop": "powershell -ExecutionPolicy Bypass -File scripts/stop-server.ps1",
+    "server:status": "powershell -ExecutionPolicy Bypass -File scripts/server-status.ps1",
+    "typecheck:server": "tsc -p tsconfig.server.json",
     "test:e2e": "node scripts/e2e-review-workflow.mjs",
-    "build": "tsc -b && vite build",
+    "build": "npm run typecheck:server && tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview"
   },

@@ -1,4 +1,4 @@
-import type { AgentCode, RequestCategory, RoutingDecision, UserRequest } from './types';
+import type { AgentCode, AgentTask, RequestCategory, RoutingDecision, UserRequest } from './types.js';
 
 function categorizeRequest(message: string, sensitive?: boolean): RequestCategory {
   if (sensitive) return 'sensitive';

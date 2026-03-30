@@ -1,6 +1,6 @@
-import { agentLabels, agentRunners, makeReviewDecision } from './agents';
-import { routeRequest } from './router';
-import type { FinalResponse, RespondOptions, ReviewDecision, ReviewStatus, UserRequest, WorkflowState } from './types';
+import { agentLabels, agentRunners, makeReviewDecision } from './agents.js';
+import { routeRequest } from './router.js';
+import type { FinalResponse, RespondOptions, ReviewDecision, UserRequest, WorkflowState } from './types.js';
 
 function applyReviewOverride(base: ReviewDecision, options?: RespondOptions): ReviewDecision {
   if (!options?.reviewOverrideStatus) return base;

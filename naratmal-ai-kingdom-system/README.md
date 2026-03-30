@@ -15,6 +15,18 @@ npm run dev
 npm run start:server
 ```
 
+## 서버 관리 (Windows)
+```bash
+npm run server:start:detached
+npm run server:status
+npm run server:stop
+```
+
+## 타입검사
+```bash
+npm run typecheck:server
+```
+
 ## E2E 검증
 ```bash
 npm run test:e2e

@@ -1,4 +1,4 @@
-import type { AgentCode, AgentResult, ReviewDecision, UserRequest } from './types';
+import type { AgentCode, AgentResult, ReviewDecision, UserRequest } from './types.js';
 
 function buildResult(agent: AgentCode, summary: string, output: string[]): AgentResult {
   return { agent, summary, output };

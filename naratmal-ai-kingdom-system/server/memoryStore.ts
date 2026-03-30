@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import type { FinalResponse, UserRequest } from './types';
+import type { FinalResponse, UserRequest } from './types.js';
 
 const logDir = path.resolve(process.cwd(), 'memory', 'session_logs');
 
