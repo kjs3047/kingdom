@@ -22,6 +22,14 @@ npm run server:status
 npm run server:stop
 ```
 
+## 영의정 브리지 CLI
+```bash
+npm run kingdom:respond -- --message "외부 제출용 1페이지 제안 초안을 작성해줘" --external
+npm run kingdom:review -- --log-id <LOG_ID> --status approved --reason "사헌부 승인 완료"
+```
+
+이 CLI는 OpenClaw 메인 세션이 `exec`로 로컬 왕국 서버를 직접 호출할 때 사용할 수 있다.
+
 ## 타입검사
 ```bash
 npm run typecheck:server

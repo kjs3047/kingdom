@@ -10,6 +10,8 @@
     "server:start:detached": "powershell -ExecutionPolicy Bypass -File scripts/start-server.ps1",
     "server:stop": "powershell -ExecutionPolicy Bypass -File scripts/stop-server.ps1",
     "server:status": "powershell -ExecutionPolicy Bypass -File scripts/server-status.ps1",
+    "kingdom:respond": "node scripts/kingdom-respond.mjs",
+    "kingdom:review": "node scripts/kingdom-review-decision.mjs",
     "typecheck:server": "tsc -p tsconfig.server.json",
     "test:e2e": "node scripts/e2e-review-workflow.mjs",
     "build": "npm run typecheck:server && tsc -b && vite build",
