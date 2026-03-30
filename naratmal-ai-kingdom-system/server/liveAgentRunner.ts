@@ -54,9 +54,9 @@ export async function runLiveAgentTask(task: AgentTask, request: UserRequest): P
   const prompt = buildPrompt(task, request);
   const openclawEntry = 'C:\\Users\\old-notebook-kjs\\AppData\\Roaming\\npm\\node_modules\\openclaw\\openclaw.mjs';
   const { stdout } = await execFileAsync('node', [openclawEntry, 'agent', '--agent', cliAgentMap[agent], '--message', prompt, '--json'], {
-    cwd: 'C:\\Users\\old-notebook-kjs\\.openclaw\\workspace',
+    cwd: process.env.KINGDOM_WORKSPACE_DIR || 'C:\\Users\\old-notebook-kjs\\.openclaw\\workspace',
     windowsHide: true,
-    timeout: 180000,
+    timeout: Number(process.env.KINGDOM_LIVE_TIMEOUT_MS || 45000),
     maxBuffer: 1024 * 1024,
   });
 

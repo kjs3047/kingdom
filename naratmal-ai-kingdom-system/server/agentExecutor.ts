@@ -18,8 +18,9 @@ export async function executeAgentTasks(tasks: AgentTask[], request: UserRequest
         results.push(await runLiveAgentTask(task, request));
       } catch (error) {
         const fallback = agentRunners[task.agent as Exclude<typeof task.agent, 'chief_agent'>](request);
+        const errorMessage = error instanceof Error ? error.message : 'live error';
         fallback.summary = `${fallback.summary} (live 호출 실패로 mock 대체)`;
-        fallback.output.unshift(error instanceof Error ? `live error: ${error.message}` : 'live error');
+        fallback.output.unshift(`live fallback: ${errorMessage}`);
         results.push(fallback);
       }
     }

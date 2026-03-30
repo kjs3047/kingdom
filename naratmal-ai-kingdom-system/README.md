@@ -26,11 +26,14 @@ npm run server:stop
 ```bash
 npm run kingdom:respond -- --message "외부 제출용 1페이지 제안 초안을 작성해줘" --external
 npm run kingdom:review -- --log-id <LOG_ID> --status approved --reason "사헌부 승인 완료"
+npm run kingdom:bridge -- --message "외부 제출용 1페이지 제안 초안을 작성해줘" --sender "폐하"
 ```
 
 이 CLI는 OpenClaw 메인 세션이 `exec`로 로컬 왕국 서버를 직접 호출할 때 사용할 수 있다.
 Detached 서버(`server:start:detached`)는 기본적으로 `KINGDOM_AGENT_MODE=live`로 떠서 실제 기관 agent를 호출한다.
+필요하면 `KINGDOM_LIVE_TIMEOUT_MS`로 live 기관 호출 timeout을 조정할 수 있다.
 테스트 스크립트(`test:e2e`)는 비용 절약을 위해 `mock` 모드로 실행된다.
+브리지 스크립트(`kingdom:bridge`)는 Telegram 입력을 왕국 서버 형식으로 정규화해 최종 보고와 검수 보류 여부를 함께 반환한다.
 
 ## 타입검사
 ```bash
