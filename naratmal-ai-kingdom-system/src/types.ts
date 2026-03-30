@@ -15,6 +15,8 @@ export type RequestCategory =
   | 'operations'
   | 'sensitive';
 
+export type ReviewStatus = 'not_required' | 'approved' | 'revision_requested' | 'blocked';
+
 export interface UserRequest {
   message: string;
   attachments?: string[];
@@ -42,9 +44,31 @@ export interface RoutingDecision {
   tasks: AgentTask[];
 }
 
+export interface ReviewActionItem {
+  code: string;
+  title: string;
+  detail: string;
+  severity: 'low' | 'medium' | 'high';
+}
+
+export interface ReviewDecision {
+  status: ReviewStatus;
+  reason: string;
+  requiredForExternalDelivery: boolean;
+  actionItems?: ReviewActionItem[];
+}
+
+export interface WorkflowState {
+  phase: 'draft' | 'review_required' | 'approved' | 'blocked';
+  nextAction: string;
+}
+
 export interface FinalResponse {
   briefing: string;
   routing: RoutingDecision;
   results: AgentResult[];
+  review: ReviewDecision;
+  workflow: WorkflowState;
+  revisionSummary?: string;
   finalMessage: string;
 }

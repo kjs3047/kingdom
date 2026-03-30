@@ -3,7 +3,7 @@ import { agentLabels } from './agents';
 import { runChiefAgent } from './chiefAgent';
 import { sampleRequests } from './sampleData';
 
-const selectedRequest = sampleRequests[0];
+const selectedRequest = sampleRequests[1];
 const result = runChiefAgent(selectedRequest);
 
 function App() {
@@ -53,6 +53,36 @@ function App() {
               <strong>검수 필요</strong>
               <span>{result.routing.reviewRequired ? '예' : '아니오'}</span>
             </div>
+          </div>
+        </section>
+
+        <section className="panel panel--wide review-panel">
+          <div className="panel__title-row">
+            <h2>사헌부 검수 현황</h2>
+            <span className={`status-badge status-badge--${result.review.status}`}>{result.review.status}</span>
+          </div>
+          <div className="summary-grid">
+            <div>
+              <strong>워크플로 단계</strong>
+              <span>{result.workflow.phase}</span>
+            </div>
+            <div>
+              <strong>다음 조치</strong>
+              <span>{result.workflow.nextAction}</span>
+            </div>
+          </div>
+          {result.revisionSummary ? <div className="revision-summary">{result.revisionSummary}</div> : null}
+          <div className="review-list">
+            {(result.review.actionItems ?? []).map((item) => (
+              <article key={item.code} className="review-item">
+                <div className="review-item__header">
+                  <strong>{item.title}</strong>
+                  <span className={`severity-pill severity-pill--${item.severity}`}>{item.severity}</span>
+                </div>
+                <p>{item.detail}</p>
+                <small>{item.code}</small>
+              </article>
+            ))}
           </div>
         </section>
 

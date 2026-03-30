@@ -4,13 +4,20 @@ import cors from 'cors';
 import { z } from 'zod';
 import { runChiefAgent } from './chiefAgent.js';
 import { persistSessionLog, readSessionLog } from './memoryStore.js';
-import type { ReviewStatus } from './types.js';
+import type { ReviewActionItem, ReviewStatus } from './types.js';
 
 const app = express();
 const port = Number(process.env.PORT || 43110);
 
 app.use(cors());
 app.use(express.json());
+
+const reviewActionItemSchema = z.object({
+  code: z.string().min(1),
+  title: z.string().min(1),
+  detail: z.string().min(1),
+  severity: z.enum(['low', 'medium', 'high']),
+});
 
 const requestSchema = z.object({
   message: z.string().min(1),
@@ -20,12 +27,15 @@ const requestSchema = z.object({
   requester: z.string().optional(),
   reviewOverrideStatus: z.enum(['not_required', 'approved', 'revision_requested', 'blocked']).optional(),
   reviewOverrideReason: z.string().optional(),
+  reviewActionItems: z.array(reviewActionItemSchema).optional(),
 });
 
 const approveSchema = z.object({
   logId: z.string().min(1),
   status: z.enum(['approved', 'revision_requested', 'blocked']),
   reason: z.string().min(1),
+  reviewActionItems: z.array(reviewActionItemSchema).optional(),
+  revisionNote: z.string().optional(),
 });
 
 app.get('/health', (_req, res) => {
@@ -60,8 +70,8 @@ app.post('/api/kingdom/respond', (req, res) => {
     return res.status(400).json({ ok: false, error: parsed.error.flatten() });
   }
 
-  const { reviewOverrideStatus, reviewOverrideReason, ...request } = parsed.data;
-  Promise.resolve(runChiefAgent(request, { reviewOverrideStatus, reviewOverrideReason }))
+  const { reviewOverrideStatus, reviewOverrideReason, reviewActionItems, ...request } = parsed.data;
+  Promise.resolve(runChiefAgent(request, { reviewOverrideStatus, reviewOverrideReason, reviewActionItems }))
     .then((response) => {
       const log = persistSessionLog(request, response);
       return res.json({ ok: true, response, logId: log.id, logPath: log.filePath });
@@ -83,10 +93,18 @@ app.post('/api/kingdom/review/decision', (req, res) => {
     return res.status(404).json({ ok: false, error: 'log not found' });
   }
 
-  Promise.resolve(runChiefAgent(existing.request, {
-    reviewOverrideStatus: parsed.data.status as ReviewStatus,
-    reviewOverrideReason: parsed.data.reason,
-  }))
+  const revisionNote = parsed.data.revisionNote?.trim();
+  const reviewReason = revisionNote
+    ? `${parsed.data.reason} / 재검수 메모: ${revisionNote}`
+    : parsed.data.reason;
+
+  Promise.resolve(
+    runChiefAgent(existing.request, {
+      reviewOverrideStatus: parsed.data.status as ReviewStatus,
+      reviewOverrideReason: reviewReason,
+      reviewActionItems: parsed.data.reviewActionItems as ReviewActionItem[] | undefined,
+    }),
+  )
     .then((response) => {
       const log = persistSessionLog(existing.request, response);
       return res.json({ ok: true, previousLogId: parsed.data.logId, response, logId: log.id, logPath: log.filePath });

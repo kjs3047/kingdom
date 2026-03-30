@@ -69,9 +69,19 @@ body {
   margin-top: 0;
 }
 
+.panel__title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
 .request-box,
 .card,
-.summary-grid div {
+.summary-grid div,
+.review-item,
+.revision-summary {
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 18px;
@@ -94,12 +104,14 @@ body {
   gap: 6px;
 }
 
-.task-list {
+.task-list,
+.review-list {
   display: grid;
   gap: 12px;
 }
 
-.card {
+.card,
+.review-item {
   padding: 16px;
 }
 
@@ -107,8 +119,75 @@ body {
   margin-top: 0;
 }
 
-.card small {
+.card small,
+.review-item small {
   color: #bcc5dd;
+}
+
+.review-panel {
+  background: linear-gradient(135deg, rgba(152, 115, 38, 0.2), rgba(255, 255, 255, 0.04));
+}
+
+.revision-summary {
+  padding: 16px;
+  margin-top: 14px;
+  line-height: 1.7;
+  color: #f7e7bf;
+}
+
+.review-item__header {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.status-badge,
+.severity-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.status-badge--approved {
+  background: rgba(86, 196, 137, 0.18);
+  color: #8af0b3;
+}
+
+.status-badge--revision_requested {
+  background: rgba(241, 177, 66, 0.2);
+  color: #ffd98a;
+}
+
+.status-badge--blocked {
+  background: rgba(222, 94, 94, 0.2);
+  color: #ff9b9b;
+}
+
+.status-badge--not_required {
+  background: rgba(139, 164, 219, 0.2);
+  color: #bdd1ff;
+}
+
+.severity-pill--high {
+  background: rgba(222, 94, 94, 0.18);
+  color: #ffacac;
+}
+
+.severity-pill--medium {
+  background: rgba(241, 177, 66, 0.18);
+  color: #ffd98a;
+}
+
+.severity-pill--low {
+  background: rgba(86, 196, 137, 0.18);
+  color: #8af0b3;
 }
 
 .final-panel {
@@ -125,6 +204,12 @@ body {
 @media (max-width: 700px) {
   .summary-grid {
     grid-template-columns: 1fr;
+  }
+
+  .panel__title-row,
+  .review-item__header {
+    flex-direction: column;
+    align-items: flex-start;
   }
 
   .app-shell {

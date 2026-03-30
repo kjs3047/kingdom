@@ -45,10 +45,18 @@ export interface RoutingDecision {
   tasks: AgentTask[];
 }
 
+export interface ReviewActionItem {
+  code: string;
+  title: string;
+  detail: string;
+  severity: 'low' | 'medium' | 'high';
+}
+
 export interface ReviewDecision {
   status: ReviewStatus;
   reason: string;
   requiredForExternalDelivery: boolean;
+  actionItems?: ReviewActionItem[];
 }
 
 export interface WorkflowState {
@@ -77,4 +85,5 @@ export interface FinalResponse {
 export interface RespondOptions {
   reviewOverrideStatus?: ReviewStatus;
   reviewOverrideReason?: string;
+  reviewActionItems?: ReviewActionItem[];
 }

@@ -1,7 +1,57 @@
-import type { AgentCode, AgentResult, UserRequest } from './types';
+import type { AgentCode, AgentResult, ReviewActionItem, ReviewDecision, UserRequest } from './types';
 
 function buildResult(agent: AgentCode, summary: string, output: string[]): AgentResult {
   return { agent, summary, output };
+}
+
+function buildActionItems(request: UserRequest): ReviewActionItem[] {
+  if (request.sensitive) {
+    return [
+      {
+        code: 'SENSITIVE_SCOPE_REVIEW',
+        title: '민감 정보 범위 재정의',
+        detail: '문서에 포함된 민감 운영 정보 범위를 축소하거나 비식별 처리해야 한다.',
+        severity: 'high',
+      },
+      {
+        code: 'HUMAN_APPROVAL_REQUIRED',
+        title: '사람 승인 절차 추가',
+        detail: '최종 배포 전 사람 검토·승인 단계를 명시해야 한다.',
+        severity: 'high',
+      },
+      {
+        code: 'RISK_DISCLOSURE_APPEND',
+        title: '리스크 고지 문구 보강',
+        detail: '오해 가능성이 있는 운영 판단이나 제한 사항을 명시해야 한다.',
+        severity: 'medium',
+      },
+    ];
+  }
+
+  if (request.externalDelivery) {
+    return [
+      {
+        code: 'CLAIM_TONE_ADJUST',
+        title: '대외 표현 수위 조정',
+        detail: '확정되지 않은 성과·약속 표현을 완화하고 근거 중심 문장으로 교체해야 한다.',
+        severity: 'high',
+      },
+      {
+        code: 'SOURCE_AND_SCOPE_CLARIFY',
+        title: '범위와 전제 명시',
+        detail: '제안 범위, 제외 범위, 현재 단계(MVP 여부)를 명확히 적어야 한다.',
+        severity: 'medium',
+      },
+      {
+        code: 'AUDIT_RECHECK_REQUIRED',
+        title: '수정 후 재검수',
+        detail: '수정본 작성 후 사헌부 재검수를 거쳐야 출고할 수 있다.',
+        severity: 'medium',
+      },
+    ];
+  }
+
+  return [];
 }
 
 export const agentLabels: Record<AgentCode, string> = {
@@ -53,3 +103,30 @@ export const agentRunners: Record<Exclude<AgentCode, 'chief_agent'>, (request: U
       '민감도/평판/정책 리스크 확인',
     ]),
 };
+
+export function makeReviewDecision(request: UserRequest): ReviewDecision {
+  if (request.sensitive) {
+    return {
+      status: 'revision_requested',
+      reason: '민감 요청이므로 사람 검토 및 수정 보완 후 출고해야 한다.',
+      requiredForExternalDelivery: true,
+      actionItems: buildActionItems(request),
+    };
+  }
+
+  if (request.externalDelivery) {
+    return {
+      status: 'revision_requested',
+      reason: '외부 제출물은 사헌부 검수 완료 후에만 출고할 수 있다.',
+      requiredForExternalDelivery: true,
+      actionItems: buildActionItems(request),
+    };
+  }
+
+  return {
+    status: 'not_required',
+    reason: '내부 초안 단계로 검수 강제가 필요하지 않다.',
+    requiredForExternalDelivery: false,
+    actionItems: [],
+  };
+}

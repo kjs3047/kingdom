@@ -10,6 +10,7 @@ function applyReviewOverride(base: ReviewDecision, options?: RespondOptions): Re
     ...base,
     status: options.reviewOverrideStatus,
     reason: options.reviewOverrideReason ?? base.reason,
+    actionItems: options.reviewActionItems ?? base.actionItems,
   };
 }
 
@@ -43,13 +44,18 @@ function buildRevisionSummary(review: ReviewDecision, workflow: WorkflowState, l
   if (review.status !== 'revision_requested') return undefined;
 
   const deliveryTarget = request.externalDelivery || request.sensitive ? '출고 보류' : '내부 수정 진행';
+  const topActions = review.actionItems?.slice(0, 2).map((item) => item.title).join(', ');
+
   return [
     `주관 기관: ${leadLabel}`,
     `검수 상태: ${review.status}`,
     `처리 기준: ${deliveryTarget}`,
     `즉시 조치: ${workflow.nextAction}`,
+    topActions ? `핵심 보완: ${topActions}` : undefined,
     `검수 의견: ${review.reason}`,
-  ].join(' | ');
+  ]
+    .filter(Boolean)
+    .join(' | ');
 }
 
 function composeFinalMessage(request: UserRequest, leadLabel: string, review: ReviewDecision, workflow: WorkflowState, revisionSummary?: string) {

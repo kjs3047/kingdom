@@ -23,3 +23,4 @@
 - 영의정은 필요 시 `sessions_spawn`으로 기관 agent를 호출한다.
 - 기획은 `strategy_planner`, 구현은 `product_engineering`, 문안은 `content_marketing`, 검수는 `audit_guard`를 우선한다.
 - "기관에 넘기겠다", "검수 올리겠다" 같은 표현은 실제 tool 호출이 accepted 된 뒤에만 말한다.
+- 흐름이 끊기면 단순 재시도보다 먼저 원인부터 식별한다. 특히 E2E/서버 작업에서는 포트 점유, 잔존 프로세스, 오래된 서버 응답, 예외 처리 누락 여부를 먼저 점검하고, 복구 경로를 확보한 뒤 다시 이어간다.
