@@ -69,11 +69,12 @@ export function buildMemorySnapshot(request: UserRequest, limit = 3): MemorySnap
   return {
     requester: request.requester,
     sessionKey: request.sessionKey,
-    recentSummaries: recent.map(
-      (record) =>
-        `[${record.createdAt}] ${record.request.message} -> ${record.response.review.status} / ${record.response.workflow.nextAction}`,
-    ),
-    pendingReviewCount: logs.filter((record) => record.response.review.status === 'revision_requested').length,
+    recentSummaries: recent.map((record) => {
+      const status = record.response?.review?.status ?? 'unknown';
+      const nextAction = record.response?.workflow?.nextAction ?? '상태 정보 없음';
+      return `[${record.createdAt}] ${record.request?.message ?? '메시지 정보 없음'} -> ${status} / ${nextAction}`;
+    }),
+    pendingReviewCount: logs.filter((record) => record.response?.review?.status === 'revision_requested').length,
     latestLogId: recent.at(-1)?.id,
   };
 }
@@ -85,20 +86,20 @@ export function buildControlPlaneSnapshot(limit = 12) {
   return {
     totals: {
       totalLogs: logs.length,
-      pendingReview: logs.filter((record) => record.response.review.status === 'revision_requested').length,
-      approved: logs.filter((record) => record.response.review.status === 'approved').length,
-      blocked: logs.filter((record) => record.response.review.status === 'blocked').length,
+      pendingReview: logs.filter((record) => record.response?.review?.status === 'revision_requested').length,
+      approved: logs.filter((record) => record.response?.review?.status === 'approved').length,
+      blocked: logs.filter((record) => record.response?.review?.status === 'blocked').length,
     },
     recent: recent.map((record) => ({
       id: record.id,
       rootLogId: record.rootLogId,
       parentLogId: record.parentLogId,
-      requester: record.request.requester,
-      sessionKey: record.request.sessionKey,
-      message: record.request.message,
-      reviewStatus: record.response.review.status,
-      workflowPhase: record.response.workflow.phase,
-      nextAction: record.response.workflow.nextAction,
+      requester: record.request?.requester,
+      sessionKey: record.request?.sessionKey,
+      message: record.request?.message ?? '메시지 정보 없음',
+      reviewStatus: record.response?.review?.status ?? 'unknown',
+      workflowPhase: record.response?.workflow?.phase ?? 'unknown',
+      nextAction: record.response?.workflow?.nextAction ?? '상태 정보 없음',
       createdAt: record.createdAt,
       reviewRound: record.reviewRound,
     })),

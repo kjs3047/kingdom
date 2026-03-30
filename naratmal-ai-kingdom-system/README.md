@@ -49,6 +49,7 @@ npm run test:e2e
 
 ## 현재 단계
 이 버전은 **오케스트레이션 MVP + 로컬 telegram_gateway 서버 뼈대**를 포함한다.
+실운영 점검은 `ops-checklist.md`를 기준으로 수행한다.
 다음 단계:
 1. OpenClaw 기존 Telegram 채널 설정에 나랏말 AI 왕국 agent/binding 연결
 2. 실제 LLM/provider 호출로 mock runner 교체
