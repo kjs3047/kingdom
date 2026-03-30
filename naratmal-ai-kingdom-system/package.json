@@ -6,6 +6,8 @@
   "scripts": {
     "dev": "vite",
     "dev:server": "tsx server/index.ts",
+    "start:server": "tsx server/index.ts",
+    "test:e2e": "node scripts/e2e-review-workflow.mjs",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview"

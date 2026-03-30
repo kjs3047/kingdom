@@ -12,7 +12,15 @@
 ```bash
 npm install
 npm run dev
+npm run start:server
 ```
+
+## E2E 검증
+```bash
+npm run test:e2e
+```
+
+이 테스트는 요청 → 검수 대기 → 승인 → 출고 가능 전환 흐름을 자동 확인한다.
 
 ## 현재 단계
 이 버전은 **오케스트레이션 MVP + 로컬 telegram_gateway 서버 뼈대**를 포함한다.
