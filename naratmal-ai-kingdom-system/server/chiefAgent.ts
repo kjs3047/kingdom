@@ -39,11 +39,25 @@ function buildWorkflowState(review: ReviewDecision): WorkflowState {
   }
 }
 
-function composeFinalMessage(request: UserRequest, leadLabel: string, review: ReviewDecision, workflow: WorkflowState) {
+function buildRevisionSummary(review: ReviewDecision, workflow: WorkflowState, leadLabel: string, request: UserRequest) {
+  if (review.status !== 'revision_requested') return undefined;
+
+  const deliveryTarget = request.externalDelivery || request.sensitive ? '출고 보류' : '내부 수정 진행';
+  return [
+    `주관 기관: ${leadLabel}`,
+    `검수 상태: ${review.status}`,
+    `처리 기준: ${deliveryTarget}`,
+    `즉시 조치: ${workflow.nextAction}`,
+    `검수 의견: ${review.reason}`,
+  ].join(' | ');
+}
+
+function composeFinalMessage(request: UserRequest, leadLabel: string, review: ReviewDecision, workflow: WorkflowState, revisionSummary?: string) {
   const base = `영의정 판단: 이번 요청은 ${leadLabel}이(가) 주관하고, 필요한 기관 결과를 취합해 하나의 답으로 정리했습니다.`;
 
   if (request.externalDelivery || request.sensitive) {
-    return `${base} 또한 이 결과는 사헌부 검수 대상입니다. 현재 검수 상태는 ${review.status}이며, 다음 조치는 "${workflow.nextAction}"입니다. ${review.reason}`;
+    const revisionLine = revisionSummary ? ` 보완 요약: ${revisionSummary}.` : '';
+    return `${base} 또한 이 결과는 사헌부 검수 대상입니다. 현재 검수 상태는 ${review.status}이며, 다음 조치는 "${workflow.nextAction}"입니다.${revisionLine} ${review.reason}`;
   }
 
   return `${base} 현재 워크플로 단계는 ${workflow.phase}이며, 다음 조치는 "${workflow.nextAction}"입니다. ${review.reason}`;
@@ -55,9 +69,11 @@ export async function runChiefAgent(request: UserRequest, options?: RespondOptio
   const review = applyReviewOverride(makeReviewDecision(request), options);
   const workflow = buildWorkflowState(review);
   const deliveryAllowed = review.status === 'not_required' || review.status === 'approved';
+  const leadLabel = agentLabels[routing.leadAgent];
+  const revisionSummary = buildRevisionSummary(review, workflow, leadLabel, request);
 
   return {
-    briefing: `영의정 브리핑: 요청을 ${routing.category} 범주로 분류하고, 주관 기관을 ${agentLabels[routing.leadAgent]}으로 지정했습니다.`,
+    briefing: `영의정 브리핑: 요청을 ${routing.category} 범주로 분류하고, 주관 기관을 ${leadLabel}으로 지정했습니다.`,
     routing,
     execution: {
       mode: executed.mode,
@@ -66,8 +82,9 @@ export async function runChiefAgent(request: UserRequest, options?: RespondOptio
     results: executed.results,
     review,
     workflow,
+    revisionSummary,
     deliveryAllowed,
-    finalMessage: composeFinalMessage(request, agentLabels[routing.leadAgent], review, workflow),
+    finalMessage: composeFinalMessage(request, leadLabel, review, workflow, revisionSummary),
     timestamp: new Date().toISOString(),
   };
 }

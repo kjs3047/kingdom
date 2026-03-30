@@ -68,6 +68,7 @@ export interface FinalResponse {
   results: AgentResult[];
   review: ReviewDecision;
   workflow: WorkflowState;
+  revisionSummary?: string;
   finalMessage: string;
   deliveryAllowed: boolean;
   timestamp: string;
