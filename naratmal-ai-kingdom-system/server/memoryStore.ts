@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import type { FinalResponse, ReviewHistoryEntry, SessionLogRecord, UserRequest } from './types.js';
+import type { FinalResponse, MemorySnapshot, ReviewHistoryEntry, SessionLogRecord, UserRequest } from './types.js';
 
 const logDir = path.resolve(process.cwd(), 'memory', 'session_logs');
 
@@ -26,6 +26,39 @@ function buildReviewHistoryEntry(logId: string, response: FinalResponse, reviewR
     reviewRound,
     timestamp: response.timestamp,
     actionItems: response.review.actionItems,
+  };
+}
+
+function readAllLogs(): SessionLogRecord[] {
+  ensureLogDir();
+  return fs
+    .readdirSync(logDir)
+    .filter((file) => file.endsWith('.json'))
+    .map((file) => JSON.parse(fs.readFileSync(path.join(logDir, file), 'utf8')) as SessionLogRecord)
+    .sort((a, b) => a.createdAt.localeCompare(b.createdAt));
+}
+
+export function buildMemorySnapshot(request: UserRequest, limit = 3): MemorySnapshot {
+  const logs = readAllLogs().filter((record) => {
+    if (request.sessionKey && record.request.sessionKey) {
+      return record.request.sessionKey === request.sessionKey;
+    }
+    if (request.requester && record.request.requester) {
+      return record.request.requester === request.requester;
+    }
+    return false;
+  });
+
+  const recent = logs.slice(-limit);
+  return {
+    requester: request.requester,
+    sessionKey: request.sessionKey,
+    recentSummaries: recent.map(
+      (record) =>
+        `[${record.createdAt}] ${record.request.message} -> ${record.response.review.status} / ${record.response.workflow.nextAction}`,
+    ),
+    pendingReviewCount: logs.filter((record) => record.response.review.status === 'revision_requested').length,
+    latestLogId: recent.at(-1)?.id,
   };
 }
 

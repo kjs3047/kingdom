@@ -11,6 +11,7 @@ function parseArgs(argv) {
     if (token === '--message') args.message = argv[++i];
     else if (token === '--sender') args.sender = argv[++i];
     else if (token === '--requester') args.requester = argv[++i];
+    else if (token === '--session-key') args.sessionKey = argv[++i];
     else if (token === '--external') args.externalDelivery = true;
     else if (token === '--sensitive') args.sensitive = true;
     else if (token === '--input-file') args.inputFile = argv[++i];
@@ -58,6 +59,7 @@ async function main() {
   const body = {
     message,
     requester: payload.requester ?? payload.sender ?? '폐하',
+    sessionKey: payload.sessionKey,
     externalDelivery: payload.externalDelivery ?? inferred.externalDelivery,
     sensitive: payload.sensitive ?? inferred.sensitive,
   };

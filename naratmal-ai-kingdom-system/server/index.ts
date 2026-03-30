@@ -3,8 +3,8 @@ import express from 'express';
 import cors from 'cors';
 import { z } from 'zod';
 import { runChiefAgent } from './chiefAgent.js';
-import { persistSessionLog, readSessionLog } from './memoryStore.js';
-import type { ReviewActionItem, ReviewStatus } from './types.js';
+import { buildMemorySnapshot, persistSessionLog, readSessionLog } from './memoryStore.js';
+import type { ReviewActionItem, ReviewStatus, UserRequest } from './types.js';
 
 const app = express();
 const port = Number(process.env.PORT || 43110);
@@ -26,6 +26,7 @@ const requestSchema = z.object({
   externalDelivery: z.boolean().optional(),
   sensitive: z.boolean().optional(),
   requester: z.string().optional(),
+  sessionKey: z.string().optional(),
   reviewOverrideStatus: z.enum(['not_required', 'approved', 'revision_requested', 'blocked']).optional(),
   reviewOverrideReason: z.string().optional(),
   reviewActionItems: z.array(reviewActionItemSchema).optional(),
@@ -38,6 +39,14 @@ const approveSchema = z.object({
   reviewActionItems: z.array(reviewActionItemSchema).optional(),
   revisionNote: z.string().optional(),
 });
+
+function attachMemory(request: UserRequest): UserRequest {
+  const snapshot = buildMemorySnapshot(request);
+  return {
+    ...request,
+    memorySummary: snapshot.recentSummaries,
+  };
+}
 
 app.get('/health', (_req, res) => {
   res.json({ ok: true, service: 'telegram_gateway', time: new Date().toISOString() });
@@ -72,9 +81,11 @@ app.post('/api/kingdom/respond', (req, res) => {
   }
 
   const { reviewOverrideStatus, reviewOverrideReason, reviewActionItems, ...request } = parsed.data;
-  Promise.resolve(runChiefAgent(request, { reviewOverrideStatus, reviewOverrideReason, reviewActionItems }))
+  const enrichedRequest = attachMemory(request);
+
+  Promise.resolve(runChiefAgent(enrichedRequest, { reviewOverrideStatus, reviewOverrideReason, reviewActionItems }))
     .then((response) => {
-      const log = persistSessionLog(request, response);
+      const log = persistSessionLog(enrichedRequest, response);
       return res.json({ ok: true, response, logId: log.id, logPath: log.filePath });
     })
     .catch((error: unknown) => {
@@ -98,16 +109,17 @@ app.post('/api/kingdom/review/decision', (req, res) => {
   const reviewReason = revisionNote
     ? `${parsed.data.reason} / 재검수 메모: ${revisionNote}`
     : parsed.data.reason;
+  const enrichedRequest = attachMemory(existing.request);
 
   Promise.resolve(
-    runChiefAgent(existing.request, {
+    runChiefAgent(enrichedRequest, {
       reviewOverrideStatus: parsed.data.status as ReviewStatus,
       reviewOverrideReason: reviewReason,
       reviewActionItems: parsed.data.reviewActionItems as ReviewActionItem[] | undefined,
     }),
   )
     .then((response) => {
-      const log = persistSessionLog(existing.request, response, { parentLog: existing });
+      const log = persistSessionLog(enrichedRequest, response, { parentLog: existing });
       return res.json({
         ok: true,
         previousLogId: parsed.data.logId,

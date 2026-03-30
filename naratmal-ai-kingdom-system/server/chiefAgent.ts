@@ -60,13 +60,16 @@ function buildRevisionSummary(review: ReviewDecision, workflow: WorkflowState, l
 
 function composeFinalMessage(request: UserRequest, leadLabel: string, review: ReviewDecision, workflow: WorkflowState, revisionSummary?: string) {
   const base = `영의정 판단: 이번 요청은 ${leadLabel}이(가) 주관하고, 필요한 기관 결과를 취합해 하나의 답으로 정리했습니다.`;
+  const memoryLine = request.memorySummary?.length
+    ? ` 참고 맥락: ${request.memorySummary.slice(0, 2).join(' / ')}.`
+    : '';
 
   if (request.externalDelivery || request.sensitive) {
     const revisionLine = revisionSummary ? ` 보완 요약: ${revisionSummary}.` : '';
-    return `${base} 또한 이 결과는 사헌부 검수 대상입니다. 현재 검수 상태는 ${review.status}이며, 다음 조치는 "${workflow.nextAction}"입니다.${revisionLine} ${review.reason}`;
+    return `${base}${memoryLine} 또한 이 결과는 사헌부 검수 대상입니다. 현재 검수 상태는 ${review.status}이며, 다음 조치는 "${workflow.nextAction}"입니다.${revisionLine} ${review.reason}`;
   }
 
-  return `${base} 현재 워크플로 단계는 ${workflow.phase}이며, 다음 조치는 "${workflow.nextAction}"입니다. ${review.reason}`;
+  return `${base}${memoryLine} 현재 워크플로 단계는 ${workflow.phase}이며, 다음 조치는 "${workflow.nextAction}"입니다. ${review.reason}`;
 }
 
 export async function runChiefAgent(request: UserRequest, options?: RespondOptions): Promise<FinalResponse> {

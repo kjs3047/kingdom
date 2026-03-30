@@ -23,6 +23,8 @@ export interface UserRequest {
   externalDelivery?: boolean;
   sensitive?: boolean;
   requester?: string;
+  sessionKey?: string;
+  memorySummary?: string[];
 }
 
 export interface AgentTask {
@@ -101,6 +103,14 @@ export interface SessionLogRecord {
   response: FinalResponse;
   createdAt: string;
   reviewHistory: ReviewHistoryEntry[];
+}
+
+export interface MemorySnapshot {
+  requester?: string;
+  sessionKey?: string;
+  recentSummaries: string[];
+  pendingReviewCount: number;
+  latestLogId?: string;
 }
 
 export interface RespondOptions {
