@@ -1,4 +1,5 @@
-import { agentLabels, agentRunners, makeReviewDecision } from './agents.js';
+import { agentLabels, makeReviewDecision } from './agents.js';
+import { executeAgentTasks } from './agentExecutor.js';
 import { routeRequest } from './router.js';
 import type { FinalResponse, RespondOptions, ReviewDecision, UserRequest, WorkflowState } from './types.js';
 
@@ -48,13 +49,9 @@ function composeFinalMessage(request: UserRequest, leadLabel: string, review: Re
   return `${base} 현재 워크플로 단계는 ${workflow.phase}이며, 다음 조치는 "${workflow.nextAction}"입니다. ${review.reason}`;
 }
 
-export function runChiefAgent(request: UserRequest, options?: RespondOptions): FinalResponse {
+export async function runChiefAgent(request: UserRequest, options?: RespondOptions): Promise<FinalResponse> {
   const routing = routeRequest(request);
-  const uniqueAgents = Array.from(new Set(routing.tasks.map((task) => task.agent))).filter(
-    (agent) => agent !== 'chief_agent',
-  ) as Array<keyof typeof agentRunners>;
-
-  const results = uniqueAgents.map((agent) => agentRunners[agent](request));
+  const executed = await executeAgentTasks(routing.tasks, request);
   const review = applyReviewOverride(makeReviewDecision(request), options);
   const workflow = buildWorkflowState(review);
   const deliveryAllowed = review.status === 'not_required' || review.status === 'approved';
@@ -62,7 +59,11 @@ export function runChiefAgent(request: UserRequest, options?: RespondOptions): F
   return {
     briefing: `영의정 브리핑: 요청을 ${routing.category} 범주로 분류하고, 주관 기관을 ${agentLabels[routing.leadAgent]}으로 지정했습니다.`,
     routing,
-    results,
+    execution: {
+      mode: executed.mode,
+      strategy: 'sequential',
+    },
+    results: executed.results,
     review,
     workflow,
     deliveryAllowed,

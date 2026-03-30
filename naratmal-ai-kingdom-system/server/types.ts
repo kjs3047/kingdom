@@ -56,9 +56,15 @@ export interface WorkflowState {
   nextAction: string;
 }
 
+export interface ExecutionState {
+  mode: 'mock' | 'live';
+  strategy: 'sequential' | 'parallel';
+}
+
 export interface FinalResponse {
   briefing: string;
   routing: RoutingDecision;
+  execution: ExecutionState;
   results: AgentResult[];
   review: ReviewDecision;
   workflow: WorkflowState;

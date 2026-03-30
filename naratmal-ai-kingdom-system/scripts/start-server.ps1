@@ -24,8 +24,12 @@ if (Test-Path $logFile) {
   Remove-Item $logFile -Force -ErrorAction SilentlyContinue
 }
 
-$command = "cd /d `"$root`" && npm run start:server >> `"$logFile`" 2>&1"
-$proc = Start-Process -FilePath 'cmd.exe' -ArgumentList '/c', $command -PassThru -WindowStyle Hidden
+$command = @"
+`$env:KINGDOM_AGENT_MODE='live'
+Set-Location '$root'
+npm run start:server *> '$logFile'
+"@
+$proc = Start-Process -FilePath 'powershell.exe' -ArgumentList '-NoProfile', '-Command', $command -PassThru -WindowStyle Hidden
 Start-Sleep -Seconds 2
 
 $listener = Get-NetTCPConnection -LocalPort $port -State Listen -ErrorAction SilentlyContinue | Select-Object -First 1

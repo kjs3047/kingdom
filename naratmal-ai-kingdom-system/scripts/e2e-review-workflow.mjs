@@ -5,7 +5,7 @@ const PORT = 43111;
 const BASE_URL = `http://127.0.0.1:${PORT}`;
 const server = spawn(process.platform === 'win32' ? 'cmd' : 'npm', process.platform === 'win32' ? ['/c', 'npm', 'run', 'dev:server'] : ['run', 'dev:server'], {
   cwd: process.cwd(),
-  env: { ...process.env, PORT: String(PORT) },
+  env: { ...process.env, PORT: String(PORT), KINGDOM_AGENT_MODE: 'mock' },
   stdio: ['ignore', 'pipe', 'pipe'],
 });
 

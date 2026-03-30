@@ -61,10 +61,14 @@ app.post('/api/kingdom/respond', (req, res) => {
   }
 
   const { reviewOverrideStatus, reviewOverrideReason, ...request } = parsed.data;
-  const response = runChiefAgent(request, { reviewOverrideStatus, reviewOverrideReason });
-  const log = persistSessionLog(request, response);
-
-  return res.json({ ok: true, response, logId: log.id, logPath: log.filePath });
+  Promise.resolve(runChiefAgent(request, { reviewOverrideStatus, reviewOverrideReason }))
+    .then((response) => {
+      const log = persistSessionLog(request, response);
+      return res.json({ ok: true, response, logId: log.id, logPath: log.filePath });
+    })
+    .catch((error: unknown) => {
+      return res.status(500).json({ ok: false, error: error instanceof Error ? error.message : 'unknown error' });
+    });
 });
 
 app.post('/api/kingdom/review/decision', (req, res) => {
@@ -79,15 +83,19 @@ app.post('/api/kingdom/review/decision', (req, res) => {
     return res.status(404).json({ ok: false, error: 'log not found' });
   }
 
-  const response = runChiefAgent(existing.request, {
+  Promise.resolve(runChiefAgent(existing.request, {
     reviewOverrideStatus: parsed.data.status as ReviewStatus,
     reviewOverrideReason: parsed.data.reason,
-  });
-  const log = persistSessionLog(existing.request, response);
-
-  return res.json({ ok: true, previousLogId: parsed.data.logId, response, logId: log.id, logPath: log.filePath });
+  }))
+    .then((response) => {
+      const log = persistSessionLog(existing.request, response);
+      return res.json({ ok: true, previousLogId: parsed.data.logId, response, logId: log.id, logPath: log.filePath });
+    })
+    .catch((error: unknown) => {
+      return res.status(500).json({ ok: false, error: error instanceof Error ? error.message : 'unknown error' });
+    });
 });
 
 app.listen(port, () => {
-  console.log(`[telegram_gateway] listening on http://localhost:${port}`);
+  console.log(`[telegram_gateway] listening on http://localhost:${port} mode=${process.env.KINGDOM_AGENT_MODE ?? 'mock'}`);
 });
