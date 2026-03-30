@@ -98,6 +98,10 @@ body {
   gap: 12px;
 }
 
+.summary-grid--four {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
 .summary-grid div {
   padding: 14px;
   display: grid;
@@ -122,6 +126,10 @@ body {
 .card small,
 .review-item small {
   color: #bcc5dd;
+}
+
+.control-panel {
+  background: linear-gradient(135deg, rgba(64, 91, 148, 0.22), rgba(255, 255, 255, 0.05));
 }
 
 .review-panel {
@@ -202,7 +210,8 @@ body {
 }
 
 @media (max-width: 700px) {
-  .summary-grid {
+  .summary-grid,
+  .summary-grid--four {
     grid-template-columns: 1fr;
   }
 

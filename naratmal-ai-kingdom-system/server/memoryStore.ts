@@ -29,12 +29,28 @@ function buildReviewHistoryEntry(logId: string, response: FinalResponse, reviewR
   };
 }
 
-function readAllLogs(): SessionLogRecord[] {
+export function readAllLogs(): SessionLogRecord[] {
   ensureLogDir();
   return fs
     .readdirSync(logDir)
     .filter((file) => file.endsWith('.json'))
-    .map((file) => JSON.parse(fs.readFileSync(path.join(logDir, file), 'utf8')) as SessionLogRecord)
+    .map((file) => {
+      const parsed = JSON.parse(fs.readFileSync(path.join(logDir, file), 'utf8')) as Partial<SessionLogRecord>;
+      const fallbackId = String(parsed.id ?? file.replace(/\.json$/, ''));
+      const numericId = Number(fallbackId);
+      const fallbackCreatedAt = Number.isFinite(numericId)
+        ? new Date(numericId).toISOString()
+        : new Date().toISOString();
+
+      return {
+        reviewHistory: Array.isArray(parsed.reviewHistory) ? parsed.reviewHistory : [],
+        reviewRound: typeof parsed.reviewRound === 'number' ? parsed.reviewRound : 0,
+        rootLogId: parsed.rootLogId ?? fallbackId,
+        createdAt: typeof parsed.createdAt === 'string' ? parsed.createdAt : fallbackCreatedAt,
+        ...parsed,
+        id: fallbackId,
+      } as SessionLogRecord;
+    })
     .sort((a, b) => a.createdAt.localeCompare(b.createdAt));
 }
 
@@ -59,6 +75,33 @@ export function buildMemorySnapshot(request: UserRequest, limit = 3): MemorySnap
     ),
     pendingReviewCount: logs.filter((record) => record.response.review.status === 'revision_requested').length,
     latestLogId: recent.at(-1)?.id,
+  };
+}
+
+export function buildControlPlaneSnapshot(limit = 12) {
+  const logs = readAllLogs();
+  const recent = logs.slice(-limit).reverse();
+
+  return {
+    totals: {
+      totalLogs: logs.length,
+      pendingReview: logs.filter((record) => record.response.review.status === 'revision_requested').length,
+      approved: logs.filter((record) => record.response.review.status === 'approved').length,
+      blocked: logs.filter((record) => record.response.review.status === 'blocked').length,
+    },
+    recent: recent.map((record) => ({
+      id: record.id,
+      rootLogId: record.rootLogId,
+      parentLogId: record.parentLogId,
+      requester: record.request.requester,
+      sessionKey: record.request.sessionKey,
+      message: record.request.message,
+      reviewStatus: record.response.review.status,
+      workflowPhase: record.response.workflow.phase,
+      nextAction: record.response.workflow.nextAction,
+      createdAt: record.createdAt,
+      reviewRound: record.reviewRound,
+    })),
   };
 }
 

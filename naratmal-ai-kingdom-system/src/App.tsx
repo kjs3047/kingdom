@@ -6,6 +6,47 @@ import { sampleRequests } from './sampleData';
 const selectedRequest = sampleRequests[1];
 const result = runChiefAgent(selectedRequest);
 
+const controlPlaneSample = {
+  totals: {
+    totalLogs: 12,
+    pendingReview: 3,
+    approved: 5,
+    blocked: 1,
+  },
+  recent: [
+    {
+      id: '1774867000010',
+      requester: '폐하',
+      reviewStatus: 'revision_requested',
+      workflowPhase: 'review_required',
+      nextAction: '사헌부 권고 반영 후 재검수 필요',
+      reviewRound: 1,
+      createdAt: '2026-03-30T14:21:00.000Z',
+      message: '외부 제출용 소개 문구를 다듬어라',
+    },
+    {
+      id: '1774867000004',
+      requester: '폐하',
+      reviewStatus: 'approved',
+      workflowPhase: 'approved',
+      nextAction: '출고 또는 최종 전달 가능',
+      reviewRound: 2,
+      createdAt: '2026-03-30T13:58:00.000Z',
+      message: '투자자용 한 장 제안서 검수 완료본',
+    },
+    {
+      id: '1774866999988',
+      requester: '폐하',
+      reviewStatus: 'not_required',
+      workflowPhase: 'draft',
+      nextAction: '내부 검토 또는 다음 작업으로 진행 가능',
+      reviewRound: 0,
+      createdAt: '2026-03-30T13:21:00.000Z',
+      message: '텔레그램 브리지 구조를 점검해라',
+    },
+  ],
+};
+
 function App() {
   return (
     <div className="app-shell">
@@ -19,6 +60,47 @@ function App() {
       </header>
 
       <main className="layout">
+        <section className="panel panel--wide control-panel">
+          <div className="panel__title-row">
+            <h2>운영 제어면</h2>
+            <span className="hero__badge">control plane</span>
+          </div>
+          <div className="summary-grid summary-grid--four">
+            <div>
+              <strong>총 로그</strong>
+              <span>{controlPlaneSample.totals.totalLogs}</span>
+            </div>
+            <div>
+              <strong>검수 대기</strong>
+              <span>{controlPlaneSample.totals.pendingReview}</span>
+            </div>
+            <div>
+              <strong>승인 완료</strong>
+              <span>{controlPlaneSample.totals.approved}</span>
+            </div>
+            <div>
+              <strong>차단</strong>
+              <span>{controlPlaneSample.totals.blocked}</span>
+            </div>
+          </div>
+          <div className="task-list">
+            {controlPlaneSample.recent.map((item) => (
+              <article key={item.id} className="card">
+                <div className="panel__title-row">
+                  <h3>{item.message}</h3>
+                  <span className={`status-badge status-badge--${item.reviewStatus}`}>{item.reviewStatus}</span>
+                </div>
+                <p>
+                  요청자: {item.requester} · 라운드: {item.reviewRound} · 단계: {item.workflowPhase}
+                </p>
+                <small>
+                  다음 조치: {item.nextAction} · {item.createdAt}
+                </small>
+              </article>
+            ))}
+          </div>
+        </section>
+
         <section className="panel">
           <h2>입력 요청</h2>
           <div className="request-box">{selectedRequest.message}</div>

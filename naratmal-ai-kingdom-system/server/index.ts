@@ -3,7 +3,7 @@ import express from 'express';
 import cors from 'cors';
 import { z } from 'zod';
 import { runChiefAgent } from './chiefAgent.js';
-import { buildMemorySnapshot, persistSessionLog, readSessionLog } from './memoryStore.js';
+import { buildControlPlaneSnapshot, buildMemorySnapshot, persistSessionLog, readSessionLog } from './memoryStore.js';
 import type { ReviewActionItem, ReviewStatus, UserRequest } from './types.js';
 
 const app = express();
@@ -63,6 +63,10 @@ app.get('/api/kingdom/policies', (_req, res) => {
       deliveryBlockedUntilApproved: true,
     },
   });
+});
+
+app.get('/api/kingdom/control-plane', (_req, res) => {
+  return res.json({ ok: true, data: buildControlPlaneSnapshot() });
 });
 
 app.get('/api/kingdom/logs/:id', (req, res) => {
