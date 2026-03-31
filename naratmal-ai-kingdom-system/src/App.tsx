@@ -1,4 +1,5 @@
 import './App.css';
+import { useEffect, useState } from 'react';
 import {
   AgencyStatusPanel,
   BottlenecksPanel,
@@ -9,31 +10,39 @@ import {
   OverviewPanel,
   WorkflowGraphPanel,
 } from './components/dashboard';
+import { loadDashboardData } from './dashboard/loadDashboard';
 import { kingdomDashboard } from './dashboard/mockData';
+import type { KingdomDashboardData } from './dashboard/types';
 
 function App() {
+  const [dashboard, setDashboard] = useState<KingdomDashboardData>(kingdomDashboard);
+
+  useEffect(() => {
+    loadDashboardData().then(setDashboard);
+  }, []);
+
   return (
     <div className="app-shell">
       <DashboardHero
-        title={kingdomDashboard.meta.title}
-        subtitle={kingdomDashboard.meta.subtitle}
-        activeScenario={kingdomDashboard.meta.activeScenario}
-        ontologyVersion={kingdomDashboard.meta.ontologyVersion}
-        lastUpdated={kingdomDashboard.meta.lastUpdated}
+        title={dashboard.meta.title}
+        subtitle={dashboard.meta.subtitle}
+        activeScenario={dashboard.meta.activeScenario}
+        ontologyVersion={dashboard.meta.ontologyVersion}
+        lastUpdated={dashboard.meta.lastUpdated}
       />
 
       <main className="dashboard-grid">
-        <OverviewPanel overview={kingdomDashboard.overview} />
-        <HealthPanel health={kingdomDashboard.runtimeHealth} />
+        <OverviewPanel overview={dashboard.overview} />
+        <HealthPanel health={dashboard.runtimeHealth} />
         <WorkflowGraphPanel
-          graph={kingdomDashboard.workflowGraph}
-          incidents={kingdomDashboard.bottlenecks}
-          execution={kingdomDashboard.execution}
+          graph={dashboard.workflowGraph}
+          incidents={dashboard.bottlenecks}
+          execution={dashboard.execution}
         />
-        <AgencyStatusPanel roster={kingdomDashboard.agencyRoster} />
-        <CommandFlowPanel commands={kingdomDashboard.commandFlow} />
-        <ConversationLogPanel conversations={kingdomDashboard.conversations} />
-        <BottlenecksPanel incidents={kingdomDashboard.bottlenecks} />
+        <AgencyStatusPanel roster={dashboard.agencyRoster} />
+        <CommandFlowPanel commands={dashboard.commandFlow} />
+        <ConversationLogPanel conversations={dashboard.conversations} />
+        <BottlenecksPanel incidents={dashboard.bottlenecks} />
       </main>
     </div>
   );
