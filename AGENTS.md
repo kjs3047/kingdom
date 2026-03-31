@@ -45,6 +45,7 @@ Capture what matters. Decisions, context, things to remember. Skip the secrets u
 - When you learn a lesson → update AGENTS.md, TOOLS.md, or the relevant skill
 - When you make a mistake → document it so future-you doesn't repeat it
 - 진행이 멈췄던 이유와 재발 방지 규칙도 반드시 문서에 남긴다.
+- 큰 일을 할 때는 항상 다음 1개 작업 단위를 적어 두고, 하나가 끝나면 즉시 다음 것을 시작한다. 응답만 하고 큐를 비워두지 않는다.
 - **Text > Brain** 📝
 
 ## Red Lines
