@@ -63,16 +63,156 @@ async function loadCommandDetail(logId: string): Promise<CommandDetail | undefin
   }
 }
 
+function buildSelectedMockDashboard(selectedId?: string): KingdomDashboardData {
+  const selected = kingdomDashboard.commandFlow.find((item) => item.id === selectedId) ?? kingdomDashboard.commandFlow[0];
+  if (!selected) return kingdomDashboard;
+
+  const selectedCommand = {
+    id: selected.id,
+    message: selected.title,
+    requester: selected.requester,
+    reviewStatus: selected.status,
+    nextAction: selected.nextAction,
+    reviewHistory: [],
+    reviewActionItems: [],
+    finalMessage: selected.targetOutcome,
+    leadAgent: selected.assignedAgents[0],
+    supportAgents: selected.assignedAgents.slice(1),
+  };
+
+  return {
+    ...kingdomDashboard,
+    meta: {
+      ...kingdomDashboard.meta,
+      activeScenario: selected.title,
+      lastUpdated: new Date().toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' }),
+    },
+    selectedCommand,
+    agencyRoster: kingdomDashboard.agencyRoster.map((agent) => ({
+      ...agent,
+      currentTask: selected.assignedAgents.includes(agent.name) ? `${selected.title} 처리 중` : agent.currentTask,
+      loadPercent: selected.assignedAgents.includes(agent.name) ? Math.min(agent.loadPercent + 10, 100) : agent.loadPercent,
+    })),
+    conversations: [
+      {
+        id: `mock-thread-${selected.id}`,
+        title: selected.title,
+        participants: [selected.requester, ...selected.assignedAgents],
+        status: selected.status,
+        messages: [
+          {
+            id: `mock-request-${selected.id}`,
+            role: 'human',
+            sender: selected.requester,
+            timestamp: kingdomDashboard.meta.lastUpdated,
+            summary: selected.title,
+            nodeId: 'user',
+          },
+          {
+            id: `mock-chief-${selected.id}`,
+            role: 'chief_agent',
+            sender: '영의정',
+            timestamp: kingdomDashboard.meta.lastUpdated,
+            summary: `다음 조치: ${selected.nextAction}`,
+            nodeId: 'chief',
+          },
+        ],
+      },
+    ],
+    workflowGraph: {
+      nodes: [
+        {
+          id: 'user',
+          label: selected.requester,
+          kind: 'command',
+          state: 'complete',
+          lane: '명령 유입',
+          owner: 'Telegram',
+          detail: selected.title,
+          x: 6,
+          y: 18,
+          duration: 'mock',
+        },
+        {
+          id: 'chief',
+          label: '영의정',
+          kind: 'analysis',
+          state: 'complete',
+          lane: '조정',
+          owner: 'main',
+          detail: selected.nextAction,
+          x: 28,
+          y: 18,
+          duration: 'mock',
+        },
+        ...selected.assignedAgents.map((agent, index) => ({
+          id: `assigned-${index}`,
+          label: agent,
+          kind: 'analysis' as const,
+          state: index === 0 ? 'running' as const : 'queued' as const,
+          lane: index === 0 ? '주관 기관' : '보조 기관',
+          owner: agent,
+          detail: `${selected.title} 처리`,
+          x: 52,
+          y: 12 + index * 16,
+          duration: selected.status,
+        })),
+        {
+          id: 'report',
+          label: '폐하 보고',
+          kind: 'delivery',
+          state: selected.status === 'completed' ? 'complete' : 'waiting',
+          lane: '출고',
+          owner: '영의정',
+          detail: selected.nextAction,
+          x: 84,
+          y: 18,
+          duration: selected.status,
+        },
+      ],
+      edges: [
+        { id: 'mock-e1', from: 'user', to: 'chief', condition: 'default', label: '명 하달' },
+        ...selected.assignedAgents.map((agent, index) => ({
+          id: `mock-e-agent-${index}`,
+          from: 'chief',
+          to: `assigned-${index}`,
+          condition: 'handoff' as const,
+          label: `${agent} 배정`,
+        })),
+        { id: 'mock-e2', from: `assigned-0`, to: 'report', condition: 'feedback', label: '결과 취합' },
+      ],
+    },
+    execution: {
+      activeNodeId: selected.status === 'completed' ? 'report' : 'assigned-0',
+      blockedNodeIds: selected.status === 'awaiting_review' ? ['assigned-0'] : [],
+      completedNodeIds: ['user', 'chief'],
+    },
+    runtimeHealth: {
+      ...kingdomDashboard.runtimeHealth,
+      signals: [
+        {
+          id: 'mock-selected-command',
+          label: '선택 명령',
+          value: selected.id,
+          tone: selected.status === 'awaiting_review' ? 'critical' : selected.status === 'executing' ? 'watch' : 'healthy',
+          detail: `${selected.title} / ${selected.nextAction}`,
+        },
+        ...kingdomDashboard.runtimeHealth.signals,
+      ],
+    },
+  };
+}
+
 export async function loadDashboardData(selectedId?: string): Promise<KingdomDashboardData> {
   try {
     const response = await fetch('/api/kingdom/control-plane');
     if (!response.ok) {
-      return kingdomDashboard;
+      return buildSelectedMockDashboard(selectedId);
     }
 
     const json = await response.json();
     if (!json?.ok) {
-      return kingdomDashboard;
+      return buildSelectedMockDashboard(selectedId);
     }
 
     const mapped = mapControlPlaneToDashboard(json, kingdomDashboard, selectedId);
@@ -185,8 +325,18 @@ export async function loadDashboardData(selectedId?: string): Promise<KingdomDas
         }
       : mapped.workflowGraph;
 
+    const highlightedRoster = mapped.agencyRoster.map((agent) => {
+      const involved = [selectedLeadAgent, ...selectedSupportAgents].includes(agent.name);
+      return {
+        ...agent,
+        currentTask: involved ? `${selectedCommand?.message ?? agent.currentTask} 처리 중` : agent.currentTask,
+        loadPercent: involved ? Math.min(agent.loadPercent + 12, 100) : agent.loadPercent,
+      };
+    });
+
     return {
       ...mapped,
+      agencyRoster: highlightedRoster,
       workflowGraph: selectedGraph,
       selectedCommand,
       runtimeHealth: {
@@ -195,6 +345,6 @@ export async function loadDashboardData(selectedId?: string): Promise<KingdomDas
       },
     };
   } catch {
-    return kingdomDashboard;
+    return buildSelectedMockDashboard(selectedId);
   }
 }

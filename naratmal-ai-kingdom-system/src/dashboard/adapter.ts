@@ -288,18 +288,43 @@ export function mapControlPlaneToDashboard(
     selectedCommand,
     conversations: buildConversation(selected),
     bottlenecks:
-      data.data.totals.pendingReview > 0
+      data.data.totals.pendingReview > 0 || data.data.totals.blocked > 0
         ? [
-            {
-              id: 'incident-review',
-              title: '검수 대기 업무 존재',
-              severity: data.data.totals.pendingReview > 1 ? 'high' : 'medium',
-              affectedArea: '사헌부 검수 흐름',
-              summary: `현재 검수 대기 ${data.data.totals.pendingReview}건이 남아 있습니다.`,
-              action: '검수 대기 건을 우선 확인하고 승인·보류 사유를 로그 기준으로 점검하십시오.',
-            },
+            ...(data.data.totals.pendingReview > 0
+              ? [
+                  {
+                    id: 'incident-review',
+                    title: '검수 대기 업무 존재',
+                    severity: data.data.totals.pendingReview > 1 ? 'high' as const : 'medium' as const,
+                    affectedArea: '사헌부 검수 흐름',
+                    summary: `현재 검수 대기 ${data.data.totals.pendingReview}건이 남아 있습니다.`,
+                    action: '검수 대기 건을 우선 확인하고 승인·보류 사유를 로그 기준으로 점검하십시오.',
+                  },
+                ]
+              : []),
+            ...(data.data.totals.blocked > 0
+              ? [
+                  {
+                    id: 'incident-blocked',
+                    title: '차단된 요청 존재',
+                    severity: 'high' as const,
+                    affectedArea: '출고 게이트',
+                    summary: `현재 차단 ${data.data.totals.blocked}건이 존재합니다.`,
+                    action: '차단 사유를 확인하고 해당 요청의 수정 또는 중단 여부를 즉시 결정하십시오.',
+                  },
+                ]
+              : []),
           ]
-        : base.bottlenecks,
+        : [
+            {
+              id: 'incident-clear',
+              title: '즉시 병목 없음',
+              severity: 'low',
+              affectedArea: '전반 상태',
+              summary: '현재 기준 즉시 대응이 필요한 검수/차단 병목이 없습니다.',
+              action: '최신 요청과 기관 상태를 계속 감시하십시오.',
+            },
+          ],
     runtimeHealth: {
       ...base.runtimeHealth,
       headline: '실데이터 control plane 기준으로 선택 명령의 상태를 반영한 대시보드입니다.',
