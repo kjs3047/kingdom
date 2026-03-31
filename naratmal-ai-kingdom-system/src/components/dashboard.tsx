@@ -62,6 +62,33 @@ function getNodeById(graph: WorkflowGraphState, nodeId: string) {
   return graph.nodes.find((node) => node.id === nodeId);
 }
 
+function formatStatus(status: string) {
+  switch (status) {
+    case 'completed':
+      return '완료';
+    case 'awaiting_review':
+      return '검수 대기';
+    case 'executing':
+      return '실행 중';
+    case 'approved':
+      return '승인';
+    case 'revision_requested':
+      return '수정 요청';
+    case 'not_required':
+      return '검수 불필요';
+    case 'blocked':
+      return '차단';
+    case 'online':
+      return '정상';
+    case 'degraded':
+      return '주의';
+    case 'offline':
+      return '오프라인';
+    default:
+      return status;
+  }
+}
+
 export function DashboardHero({
   title,
   subtitle,
@@ -72,8 +99,8 @@ export function DashboardHero({
   return (
     <header className="hero">
       <div className="hero-topline">
-        <span className="chip">Ontology Workflow MVP</span>
-        <span className="chip chip--ghost">Updated {lastUpdated}</span>
+        <span className="chip">온톨로지 워크플로 대시보드</span>
+        <span className="chip chip--ghost">최종 반영 {lastUpdated}</span>
       </div>
       <div className="hero-copy">
         <div>
@@ -82,11 +109,11 @@ export function DashboardHero({
         </div>
         <div className="hero-meta">
           <div className="hero-meta-card">
-            <span>Active Scenario</span>
+            <span>현재 선택 명령</span>
             <strong>{activeScenario}</strong>
           </div>
           <div className="hero-meta-card">
-            <span>Ontology Version</span>
+            <span>온톨로지 버전</span>
             <strong>{ontologyVersion}</strong>
           </div>
         </div>
@@ -97,7 +124,7 @@ export function DashboardHero({
 
 export function OverviewPanel({ overview }: { overview: OverviewState }) {
   return (
-    <Panel title="Kingdom Overview" eyebrow="Command Surface" className="panel--span-12">
+    <Panel title="왕국 개요" eyebrow="지휘 현황" className="panel--span-12">
       <div className="overview-intro">
         <p>{overview.mission}</p>
         <p>{overview.queueSummary}</p>
@@ -117,7 +144,7 @@ export function OverviewPanel({ overview }: { overview: OverviewState }) {
 
 export function HealthPanel({ health }: { health: RuntimeHealthState }) {
   return (
-    <Panel title="Runtime Health" eyebrow="System Signals" className="panel--span-4">
+    <Panel title="런타임 상태" eyebrow="실시간 신호" className="panel--span-4">
       <p className="panel-lead">{health.headline}</p>
       <div className="stack">
         {health.signals.map((signal) => (
@@ -148,9 +175,9 @@ export function WorkflowGraphPanel({
   const activeIncident = incidents[0];
 
   return (
-    <Panel title="Dynamic Workflow Graph" eyebrow="Ontology State Map" className="panel--span-8">
+    <Panel title="동적 워크플로 그래프" eyebrow="선택 명령 경로" className="panel--span-8">
       <div className="graph-shell">
-        <svg viewBox={`0 0 ${width} ${height}`} className="graph-canvas" role="img" aria-label="Workflow graph">
+        <svg viewBox={`0 0 ${width} ${height}`} className="graph-canvas" role="img" aria-label="워크플로 그래프">
           {graph.edges.map((edge) => {
             const from = getNodeById(graph, edge.from);
             const to = getNodeById(graph, edge.to);
@@ -215,12 +242,12 @@ export function WorkflowGraphPanel({
 
         <div className="graph-aside">
           <article className="info-card">
-            <span className="info-card-label">Active Node</span>
+            <span className="info-card-label">현재 활성 노드</span>
             <strong>{getNodeById(graph, execution.activeNodeId)?.label}</strong>
             <p>{getNodeById(graph, execution.activeNodeId)?.detail}</p>
           </article>
           <article className="info-card info-card--warning">
-            <span className="info-card-label">Primary Blocker</span>
+            <span className="info-card-label">주요 병목</span>
             <strong>{activeIncident?.title ?? '없음'}</strong>
             <p>{activeIncident?.summary ?? '현재 병목 없음'}</p>
             {activeIncident ? <span className="tone-pill tone-pill--critical">{activeIncident.action}</span> : null}
@@ -233,7 +260,7 @@ export function WorkflowGraphPanel({
 
 export function AgencyStatusPanel({ roster }: { roster: AgentStatus[] }) {
   return (
-    <Panel title="Agency Status" eyebrow="Roster and Load" className="panel--span-4">
+    <Panel title="기관 상태" eyebrow="가동률과 적재량" className="panel--span-4">
       <div className="stack">
         {roster.map((agent) => (
           <article key={agent.id} className="info-card">
@@ -242,11 +269,11 @@ export function AgencyStatusPanel({ roster }: { roster: AgentStatus[] }) {
                 <strong>{agent.name}</strong>
                 <p className="muted">{agent.responsibility}</p>
               </div>
-              <span className={toneClassName(getAvailabilityTone(agent.availability))}>{agent.availability}</span>
+              <span className={toneClassName(getAvailabilityTone(agent.availability))}>{formatStatus(agent.availability)}</span>
             </div>
             <div className="progress-meta">
-              <span>Load {formatPercent(agent.loadPercent)}</span>
-              <span>Queue {agent.queueDepth}</span>
+              <span>부하 {formatPercent(agent.loadPercent)}</span>
+              <span>대기열 {agent.queueDepth}</span>
               <span>{agent.updatedAt}</span>
             </div>
             <div className="progress-bar">
@@ -270,7 +297,7 @@ export function CommandFlowPanel({
   onSelect?: (id: string) => void;
 }) {
   return (
-    <Panel title="Command Flow" eyebrow="Execution Queue" className="panel--span-4">
+    <Panel title="명령 흐름" eyebrow="실행 대기열" className="panel--span-4">
       <div className="stack">
         {commands.map((command) => (
           <article
@@ -285,10 +312,10 @@ export function CommandFlowPanel({
                   {command.id} / {command.requester}
                 </p>
               </div>
-              <span className={`tone-pill tone-pill--${mapStatusTone(command.status)}`}>{command.status}</span>
+              <span className={`tone-pill tone-pill--${mapStatusTone(command.status)}`}>{formatStatus(command.status)}</span>
             </div>
             <p>{command.targetOutcome}</p>
-            <p className="muted">Next: {command.nextAction}</p>
+            <p className="muted">다음 조치: {command.nextAction}</p>
             <div className="tag-row">
               {command.assignedAgents.map((agent) => (
                 <span key={agent} className="tag">
@@ -305,7 +332,7 @@ export function CommandFlowPanel({
 
 export function ConversationLogPanel({ conversations }: { conversations: ConversationThread[] }) {
   return (
-    <Panel title="Conversation Log" eyebrow="Agent Dialogue" className="panel--span-4">
+    <Panel title="교신 기록" eyebrow="로그 중심 대화흔적" className="panel--span-4">
       <div className="conversation-layout">
         {conversations.map((thread) => (
           <article key={thread.id} className="conversation-thread">
@@ -314,7 +341,7 @@ export function ConversationLogPanel({ conversations }: { conversations: Convers
                 <h3>{thread.title}</h3>
                 <p className="muted">{thread.participants.join(' / ')}</p>
               </div>
-              <span className={`tone-pill tone-pill--${mapStatusTone(thread.status)}`}>{thread.status}</span>
+              <span className={`tone-pill tone-pill--${mapStatusTone(thread.status)}`}>{formatStatus(thread.status)}</span>
             </div>
             <div className="stack">
               {thread.messages.map((message) => (
@@ -337,32 +364,38 @@ export function ConversationLogPanel({ conversations }: { conversations: Convers
 
 export function CommandDetailPanel({ detail }: { detail?: CommandDetail }) {
   return (
-    <Panel title="Command Detail" eyebrow="Selected Execution" className="panel--span-4">
+    <Panel title="명령 상세" eyebrow="선택 명령 분석" className="panel--span-4">
       {detail ? (
         <div className="stack">
           <article className="info-card">
             <strong>{detail.message}</strong>
             <p className="muted">{detail.id} / {detail.requester}</p>
-            <p>검수 상태: {detail.reviewStatus}</p>
+            <p>검수 상태: {formatStatus(detail.reviewStatus)}</p>
             <p>다음 조치: {detail.nextAction}</p>
+            {detail.executionMode ? <p>실행 모드: {detail.executionMode}</p> : null}
+            {detail.leadAgent ? <p>주관 기관: {detail.leadAgent}</p> : null}
+            {detail.supportAgents?.length ? <p>보조 기관: {detail.supportAgents.join(', ')}</p> : null}
           </article>
           <article className="info-card">
-            <strong>Review History</strong>
+            <strong>검수 이력</strong>
             <div className="stack compact-stack">
               {detail.reviewHistory.map((item) => (
                 <div key={item.logId} className="message message--system">
                   <div className="row-between">
-                    <strong>Round {item.reviewRound}</strong>
+                    <strong>{item.reviewRound}차 검수</strong>
                     <span className="muted">{item.timestamp}</span>
                   </div>
-                  <p>{item.status}</p>
+                  <p>{formatStatus(item.status)}</p>
                   <p className="muted">{item.reason}</p>
+                  {item.actionItems?.length ? (
+                    <p className="muted">조치 항목: {item.actionItems.map((action) => action.title).join(', ')}</p>
+                  ) : null}
                 </div>
               ))}
             </div>
           </article>
           <article className="info-card">
-            <strong>Review Action Items</strong>
+            <strong>검토 조치 항목</strong>
             <div className="stack compact-stack">
               {detail.reviewActionItems.length ? (
                 detail.reviewActionItems.map((item) => (
@@ -372,6 +405,9 @@ export function CommandDetailPanel({ detail }: { detail?: CommandDetail }) {
                       <span className="muted">{item.severity}</span>
                     </div>
                     <p>{item.detail}</p>
+                    {typeof item.resolved === 'boolean' ? (
+                      <p className="muted">해결 여부: {item.resolved ? '해결됨' : '미해결'}</p>
+                    ) : null}
                   </div>
                 ))
               ) : (
@@ -380,7 +416,7 @@ export function CommandDetailPanel({ detail }: { detail?: CommandDetail }) {
             </div>
           </article>
           <article className="info-card">
-            <strong>Final Message</strong>
+            <strong>최종 보고문</strong>
             <p>{detail.finalMessage}</p>
           </article>
         </div>
@@ -396,7 +432,7 @@ export function CommandDetailPanel({ detail }: { detail?: CommandDetail }) {
 
 export function BottlenecksPanel({ incidents }: { incidents: BottleneckIncident[] }) {
   return (
-    <Panel title="Bottlenecks" eyebrow="Operational Friction" className="panel--span-12">
+    <Panel title="병목 현황" eyebrow="운영 마찰" className="panel--span-12">
       <div className="incident-grid">
         {incidents.map((incident) => (
           <article key={incident.id} className="incident-card">

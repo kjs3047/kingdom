@@ -127,6 +127,7 @@ export interface ReviewHistoryItem {
   reason: string;
   reviewRound: number;
   timestamp: string;
+  actionItems?: ReviewActionItem[];
 }
 
 export interface ReviewActionItem {
@@ -146,6 +147,9 @@ export interface CommandDetail {
   reviewHistory: ReviewHistoryItem[];
   reviewActionItems: ReviewActionItem[];
   finalMessage: string;
+  executionMode?: string;
+  leadAgent?: string;
+  supportAgents?: string[];
 }
 
 export interface KingdomDashboardData {

@@ -3,6 +3,7 @@ import express from 'express';
 import cors from 'cors';
 import fs from 'node:fs';
 import path from 'node:path';
+import { execFileSync } from 'node:child_process';
 import { z } from 'zod';
 import { runChiefAgent } from './chiefAgent.js';
 import { buildControlPlaneSnapshot, buildMemorySnapshot, persistSessionLog, readSessionLog } from './memoryStore.js';
@@ -50,6 +51,74 @@ function attachMemory(request: UserRequest): UserRequest {
   };
 }
 
+function runOpenClaw(args: string[]) {
+  return execFileSync('openclaw', args, {
+    cwd: process.cwd(),
+    encoding: 'utf8',
+    stdio: ['ignore', 'pipe', 'pipe'],
+  });
+}
+
+function parseGatewayStatus(output: string) {
+  const lineValue = (label: string) => {
+    const escaped = label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const match = output.match(new RegExp(`${escaped}:\\s*(.+)`));
+    return match?.[1]?.trim();
+  };
+
+  return {
+    service: lineValue('Service'),
+    logPath: lineValue('File logs'),
+    runtime: lineValue('Runtime'),
+    rpcProbe: lineValue('RPC probe'),
+    listening: lineValue('Listening'),
+    dashboard: lineValue('Dashboard'),
+  };
+}
+
+function parseOpenClawStatus(output: string) {
+  const lines = output.split(/\r?\n/);
+  const telegramLine = lines.find((line) => line.includes('Telegram') && line.includes('|'));
+
+  if (!telegramLine) {
+    return { telegramEnabled: false, telegramState: 'unknown', telegramDetail: '상태 확인 실패' };
+  }
+
+  const parts = telegramLine
+    .split('|')
+    .map((part) => part.trim())
+    .filter(Boolean);
+
+  return {
+    telegramEnabled: parts[1] === 'ON',
+    telegramState: parts[2] ?? 'unknown',
+    telegramDetail: parts[3] ?? '세부 정보 없음',
+  };
+}
+
+function parseSessions() {
+  const raw = runOpenClaw(['sessions', '--all-agents', '--json']);
+  const json = JSON.parse(raw) as {
+    count?: number;
+    sessions?: Array<{ key?: string; ageMs?: number; totalTokens?: number | null; contextTokens?: number | null }>;
+  };
+  const sessions = json.sessions ?? [];
+  const activeThresholdMs = 15 * 60 * 1000;
+  const activeSessions = sessions.filter((session) => (session.ageMs ?? Number.MAX_SAFE_INTEGER) <= activeThresholdMs);
+  const hottest = [...sessions].sort((a, b) => (a.ageMs ?? Number.MAX_SAFE_INTEGER) - (b.ageMs ?? Number.MAX_SAFE_INTEGER))[0];
+  const mainSession = sessions.find((session) => session.key?.includes('telegram:direct'));
+
+  return {
+    count: json.count ?? sessions.length,
+    activeCount: activeSessions.length,
+    hottestSession: hottest?.key ?? '없음',
+    mainSessionTokens:
+      typeof mainSession?.totalTokens === 'number' && typeof mainSession?.contextTokens === 'number'
+        ? `${mainSession.totalTokens}/${mainSession.contextTokens}`
+        : 'unknown',
+  };
+}
+
 app.get('/health', (_req, res) => {
   res.json({ ok: true, service: 'telegram_gateway', time: new Date().toISOString() });
 });
@@ -75,7 +144,12 @@ app.get('/api/kingdom/openclaw/status', (_req, res) => {
   try {
     const configPath = path.resolve('C:/Users/old-notebook-kjs/.openclaw/openclaw.json');
     const raw = fs.readFileSync(configPath, 'utf8');
-    return res.json({ ok: true, data: JSON.parse(raw) });
+    const config = JSON.parse(raw);
+    const gateway = parseGatewayStatus(runOpenClaw(['gateway', 'status']));
+    const channel = parseOpenClawStatus(runOpenClaw(['status']));
+    const sessions = parseSessions();
+
+    return res.json({ ok: true, data: { config, gateway, channel, sessions } });
   } catch (error) {
     return res.status(500).json({ ok: false, error: error instanceof Error ? error.message : 'openclaw status read failed' });
   }

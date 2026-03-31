@@ -2,10 +2,10 @@ import type { KingdomDashboardData } from './types';
 
 export const kingdomDashboard: KingdomDashboardData = {
   meta: {
-    title: 'Naratmal AI Kingdom Dashboard',
+    title: '나랏말 AI 왕국 대시보드',
     subtitle:
-      'Ontology-driven workflow cockpit for command routing, agent coordination, operational review, and delivery health.',
-    activeScenario: 'Investor update narrative and release prep',
+      '명령 라우팅, 기관 협업, 검수 진행, 출고 건강도를 한 화면에서 파악하는 온톨로지 기반 운영 조타실입니다.',
+    activeScenario: '투자자 업데이트 서술 및 출시 준비',
     ontologyVersion: 'kingdom.workflow.v0',
     lastUpdated: '2026-03-31 10:40 KST',
   },
@@ -14,10 +14,10 @@ export const kingdomDashboard: KingdomDashboardData = {
       'Keep one active kingdom command moving from intake to publishable output while exposing handoffs, waiting states, and guardrail pressure.',
     queueSummary: '8 live commands, 3 in review, 1 blocked by evidence refresh.',
     metrics: [
-      { label: 'Active Commands', value: '08', delta: '+2 vs 1h', tone: 'healthy' },
-      { label: 'Review Latency', value: '14m', delta: '-5m today', tone: 'healthy' },
-      { label: 'Blocked Nodes', value: '02', delta: '+1 new', tone: 'watch' },
-      { label: 'Runtime Drift', value: '3.2%', delta: 'within SLO', tone: 'healthy' },
+      { label: '활성 명령', value: '08', delta: '1시간 전 대비 +2', tone: 'healthy' },
+      { label: '검수 지연', value: '14m', delta: '오늘 -5분', tone: 'healthy' },
+      { label: '차단 노드', value: '02', delta: '신규 +1', tone: 'watch' },
+      { label: '런타임 편차', value: '3.2%', delta: 'SLO 범위 내', tone: 'healthy' },
     ],
   },
   workflowGraph: {
