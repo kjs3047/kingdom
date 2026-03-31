@@ -131,12 +131,26 @@ export function buildControlPlaneSnapshot(limit = 12) {
     }
   }
 
+  const latest = recent[0];
+  const latestCreatedAt = latest?.createdAt ?? new Date().toISOString();
+  const activeLogs = recent.filter((record) => {
+    const status = record.response?.review?.status;
+    return status === 'revision_requested' || status === 'blocked' || status === 'not_required' || status === 'approved';
+  });
+
   return {
     totals: {
       totalLogs: logs.length,
       pendingReview: logs.filter((record) => record.response?.review?.status === 'revision_requested').length,
       approved: logs.filter((record) => record.response?.review?.status === 'approved').length,
       blocked: logs.filter((record) => record.response?.review?.status === 'blocked').length,
+    },
+    snapshot: {
+      latestCreatedAt,
+      activeLogCount: activeLogs.length,
+      latestMessage: latest?.request?.message ?? '최근 작업 없음',
+      latestWorkflowPhase: latest?.response?.workflow?.phase ?? 'unknown',
+      latestNextAction: latest?.response?.workflow?.nextAction ?? '상태 정보 없음',
     },
     roster: Array.from(rosterMap.values()),
     recent: recent.map((record) => ({

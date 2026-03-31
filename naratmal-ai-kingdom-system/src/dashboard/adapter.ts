@@ -41,6 +41,13 @@ type ControlPlaneResponse = {
       approved: number;
       blocked: number;
     };
+    snapshot?: {
+      latestCreatedAt?: string;
+      activeLogCount?: number;
+      latestMessage?: string;
+      latestWorkflowPhase?: string;
+      latestNextAction?: string;
+    };
     roster?: ControlPlaneRosterItem[];
     recent: ControlPlaneItem[];
   };
@@ -225,21 +232,26 @@ export function mapControlPlaneToDashboard(
       }
     : undefined;
 
+  const snapshotTime = data.data.snapshot?.latestCreatedAt
+    ? new Date(data.data.snapshot.latestCreatedAt).toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' })
+    : new Date().toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' });
+
   return {
     ...base,
     meta: {
       ...base.meta,
-      lastUpdated: new Date().toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' }),
-      activeScenario: selected?.message ?? base.meta.activeScenario,
+      lastUpdated: snapshotTime,
+      activeScenario: selected?.message ?? data.data.snapshot?.latestMessage ?? base.meta.activeScenario,
+      subtitle: `최근 상태 기준 상황판 · 최신 작업: ${data.data.snapshot?.latestMessage ?? '정보 없음'}`,
     },
     overview: {
-      ...base.overview,
-      queueSummary: `${data.data.totals.totalLogs}개 로그, 검수 대기 ${data.data.totals.pendingReview}건, 승인 ${data.data.totals.approved}건, 차단 ${data.data.totals.blocked}건`,
+      mission: `현재 최신 워크플로 단계는 ${data.data.snapshot?.latestWorkflowPhase ?? 'unknown'}이며, 다음 조치는 ${data.data.snapshot?.latestNextAction ?? '상태 정보 없음'}입니다.`,
+      queueSummary: `최근 활성 로그 ${data.data.snapshot?.activeLogCount ?? recent.length}건 / 검수 대기 ${data.data.totals.pendingReview}건 / 승인 ${data.data.totals.approved}건 / 차단 ${data.data.totals.blocked}건`,
       metrics: [
-        { label: '전체 로그', value: String(data.data.totals.totalLogs).padStart(2, '0'), delta: 'control plane', tone: 'healthy' },
-        { label: '검수 대기', value: String(data.data.totals.pendingReview).padStart(2, '0'), delta: 'guardrail', tone: toneFromCount(data.data.totals.pendingReview) },
-        { label: '승인 완료', value: String(data.data.totals.approved).padStart(2, '0'), delta: 'deliverable', tone: 'healthy' },
-        { label: '차단 건수', value: String(data.data.totals.blocked).padStart(2, '0'), delta: 'runtime', tone: toneFromCount(data.data.totals.blocked) },
+        { label: '최근 로그', value: String(data.data.totals.totalLogs).padStart(2, '0'), delta: snapshotTime, tone: 'healthy' },
+        { label: '검수 대기', value: String(data.data.totals.pendingReview).padStart(2, '0'), delta: '현재 보류', tone: toneFromCount(data.data.totals.pendingReview) },
+        { label: '승인 완료', value: String(data.data.totals.approved).padStart(2, '0'), delta: '출고 가능', tone: 'healthy' },
+        { label: '차단 건수', value: String(data.data.totals.blocked).padStart(2, '0'), delta: '즉시 확인', tone: toneFromCount(data.data.totals.blocked) },
       ],
     },
     workflowGraph: graph,
