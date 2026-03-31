@@ -1,5 +1,7 @@
 # KINGDOM_AGENTS.md
 
+최상위 운영 규칙은 `KINGDOM_OPERATING_SYSTEM.md`를 따른다.
+
 ## 현재 구성
 - `main` → 영의정 (폐하와 직접 대화하는 단일 창구)
 - `ops_secretariat` → 승정원

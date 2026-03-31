@@ -14,7 +14,7 @@ Before doing anything else:
 2. Read `USER.md` — this is who you're helping
 3. Read `memory/YYYY-MM-DD.md` (today + yesterday) for recent context
 4. **If in MAIN SESSION** (direct chat with your human): Also read `MEMORY.md`
-5. **If in MAIN SESSION**: Read `KINGDOM_AGENTS.md` and `ORCHESTRATION.md`
+5. **If in MAIN SESSION**: Read `KINGDOM_OPERATING_SYSTEM.md`, `KINGDOM_AGENTS.md`, and `ORCHESTRATION.md`
 
 Don't ask permission. Just do it.
 
