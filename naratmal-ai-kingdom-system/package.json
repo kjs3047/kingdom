@@ -21,6 +21,7 @@
     "ops:post-task-cleanup": "node scripts/ops-post-task-cleanup.mjs",
     "typecheck:server": "tsc -p tsconfig.server.json",
     "test:e2e": "node scripts/e2e-review-workflow.mjs",
+    "test:ui": "playwright test",
     "build": "npm run typecheck:server && tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview"
@@ -35,6 +36,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.39.4",
+    "@playwright/test": "^1.54.2",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
     "@types/node": "^24.12.0",
