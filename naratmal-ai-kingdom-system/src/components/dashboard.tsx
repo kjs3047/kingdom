@@ -165,10 +165,14 @@ export function WorkflowGraphPanel({
   graph,
   incidents,
   execution,
+  selectedNodeId,
+  onSelectNode,
 }: {
   graph: WorkflowGraphState;
   incidents: BottleneckIncident[];
   execution: ExecutionSnapshot;
+  selectedNodeId?: string;
+  onSelectNode?: (id: string) => void;
 }) {
   const width = 880;
   const height = 340;
@@ -206,14 +210,28 @@ export function WorkflowGraphPanel({
           })}
 
           {graph.nodes.map((node) => {
-            const isActive = execution.activeNodeId === node.id;
+            const isSelected = selectedNodeId === node.id;
+            const isActive = (selectedNodeId ? selectedNodeId === node.id : execution.activeNodeId === node.id);
             const isBlocked = execution.blockedNodeIds.includes(node.id);
             const isComplete = execution.completedNodeIds.includes(node.id);
             const x = node.x * 8;
             const y = node.y * 5;
 
             return (
-              <g key={node.id} transform={`translate(${x}, ${y})`}>
+              <g
+                key={node.id}
+                transform={`translate(${x}, ${y})`}
+                role="button"
+                tabIndex={0}
+                aria-pressed={isSelected}
+                onClick={() => onSelectNode?.(node.id)}
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault();
+                    onSelectNode?.(node.id);
+                  }
+                }}
+              >
                 <rect
                   width="168"
                   height="84"
@@ -224,6 +242,7 @@ export function WorkflowGraphPanel({
                     isActive && 'graph-node--active',
                     isBlocked && 'graph-node--blocked',
                     isComplete && 'graph-node--complete',
+                    isSelected && 'info-card--selected',
                   )}
                 />
                 <text x="16" y="24" className="graph-node-kind">
@@ -242,9 +261,9 @@ export function WorkflowGraphPanel({
 
         <div className="graph-aside">
           <article className="info-card">
-            <span className="info-card-label">현재 활성 노드</span>
-            <strong>{getNodeById(graph, execution.activeNodeId)?.label}</strong>
-            <p>{getNodeById(graph, execution.activeNodeId)?.detail}</p>
+            <span className="info-card-label">현재 선택 노드</span>
+            <strong>{getNodeById(graph, selectedNodeId ?? execution.activeNodeId)?.label}</strong>
+            <p>{getNodeById(graph, selectedNodeId ?? execution.activeNodeId)?.detail}</p>
           </article>
           <article className="info-card info-card--warning">
             <span className="info-card-label">주요 병목</span>
@@ -304,6 +323,15 @@ export function CommandFlowPanel({
             key={command.id}
             className={cn('info-card clickable-card', selectedCommandId === command.id && 'info-card--selected')}
             onClick={() => onSelect?.(command.id)}
+            role="button"
+            tabIndex={0}
+            aria-pressed={selectedCommandId === command.id}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+                onSelect?.(command.id);
+              }
+            }}
           >
             <div className="row-between">
               <div>
@@ -364,7 +392,7 @@ export function ConversationLogPanel({ conversations }: { conversations: Convers
 
 export function CommandDetailPanel({ detail }: { detail?: CommandDetail }) {
   return (
-    <Panel title="명령 상세" eyebrow="선택 명령 분석" className="panel--span-4">
+    <Panel title="명령 상세" eyebrow={detail ? `선택 명령 분석 · ${detail.id}` : '선택 명령 분석'} className="panel--span-4">
       {detail ? (
         <div className="stack">
           <article className="info-card">

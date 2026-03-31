@@ -18,9 +18,13 @@ import type { KingdomDashboardData } from './dashboard/types';
 function App() {
   const [dashboard, setDashboard] = useState<KingdomDashboardData>(kingdomDashboard);
   const [selectedCommandId, setSelectedCommandId] = useState<string | undefined>(undefined);
+  const [selectedNodeId, setSelectedNodeId] = useState<string | undefined>(undefined);
 
   useEffect(() => {
-    loadDashboardData(selectedCommandId).then(setDashboard);
+    loadDashboardData(selectedCommandId).then((data) => {
+      setDashboard(data);
+      setSelectedNodeId(undefined);
+    });
   }, [selectedCommandId]);
 
   return (
@@ -40,6 +44,8 @@ function App() {
           graph={dashboard.workflowGraph}
           incidents={dashboard.bottlenecks}
           execution={dashboard.execution}
+          selectedNodeId={selectedNodeId}
+          onSelectNode={setSelectedNodeId}
         />
         <AgencyStatusPanel roster={dashboard.agencyRoster} />
         <CommandFlowPanel
