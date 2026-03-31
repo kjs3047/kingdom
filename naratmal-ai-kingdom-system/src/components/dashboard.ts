@@ -8,4 +8,4 @@ export {
   HealthPanel,
   OverviewPanel,
   WorkflowGraphPanel,
-} from './dashboard';
+} from './dashboard.tsx';
