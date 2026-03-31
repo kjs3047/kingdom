@@ -21,6 +21,17 @@ type ControlPlaneItem = {
   reviewRound: number;
 };
 
+type ControlPlaneRosterItem = {
+  id: string;
+  name: string;
+  responsibility: string;
+  availability: 'online' | 'degraded' | 'offline';
+  loadPercent: number;
+  queueDepth: number;
+  currentTask: string;
+  updatedAt: string;
+};
+
 type ControlPlaneResponse = {
   ok: boolean;
   data: {
@@ -30,6 +41,7 @@ type ControlPlaneResponse = {
       approved: number;
       blocked: number;
     };
+    roster?: ControlPlaneRosterItem[];
     recent: ControlPlaneItem[];
   };
 };
@@ -120,6 +132,26 @@ function buildWorkflowGraph(active?: ControlPlaneItem): { nodes: WorkflowGraphNo
 function buildConversation(selected?: ControlPlaneItem): ConversationThread[] {
   if (!selected) return [];
 
+  const assignedParticipants =
+    selected.reviewStatus === 'revision_requested' || selected.reviewStatus === 'blocked' || selected.reviewStatus === 'approved'
+      ? ['사헌부']
+      : selected.message.includes('기획')
+        ? ['집현전']
+        : selected.message.includes('구현') || selected.message.includes('버그')
+          ? ['병조']
+          : selected.message.includes('소개문') || selected.message.includes('외부')
+            ? ['예조']
+            : ['승정원'];
+
+  const specialistMessages: ConversationMessage[] = assignedParticipants.map((participant, index) => ({
+    id: `msg-${selected.id}-specialist-${index}`,
+    role: participant === '사헌부' ? 'audit_guard' : 'specialist',
+    sender: participant,
+    timestamp: selected.createdAt,
+    summary: `${participant} 응답 / 현재 단계 ${selected.workflowPhase}`,
+    nodeId: participant === '사헌부' ? 'review' : 'lead',
+  }));
+
   const messages: ConversationMessage[] = [
     {
       id: `msg-${selected.id}-request`,
@@ -137,6 +169,7 @@ function buildConversation(selected?: ControlPlaneItem): ConversationThread[] {
       summary: `현재 단계: ${selected.workflowPhase} / 다음 조치: ${selected.nextAction}`,
       nodeId: 'chief',
     },
+    ...specialistMessages,
   ];
 
   if (selected.reviewStatus === 'revision_requested' || selected.reviewStatus === 'blocked' || selected.reviewStatus === 'approved') {
@@ -157,7 +190,7 @@ function buildConversation(selected?: ControlPlaneItem): ConversationThread[] {
     {
       id: `thread-${selected.id}`,
       title: selected.message,
-      participants: ['폐하', '영의정', ...(selected.reviewStatus === 'not_required' ? [] : ['사헌부'])],
+      participants: ['폐하', '영의정', ...assignedParticipants],
       status: mapCommandStatus(selected.reviewStatus),
       messages,
     },
@@ -172,6 +205,25 @@ export function mapControlPlaneToDashboard(
   const recent = data.data.recent;
   const selected = recent.find((item) => item.id === selectedCommandId) ?? recent[0];
   const graph = buildWorkflowGraph(selected);
+
+  const selectedStatus = selected?.reviewStatus ?? 'unknown';
+  const selectedTone = selectedStatus === 'approved' || selectedStatus === 'not_required'
+    ? 'healthy'
+    : selectedStatus === 'revision_requested' || selectedStatus === 'blocked'
+      ? 'critical'
+      : 'watch';
+  const selectedCommand = selected
+    ? {
+        id: selected.id,
+        message: selected.message,
+        requester: selected.requester ?? '폐하',
+        reviewStatus: selected.reviewStatus,
+        nextAction: selected.nextAction,
+        reviewHistory: [],
+        reviewActionItems: [],
+        finalMessage: `${selected.workflowPhase} / ${selected.nextAction}`,
+      }
+    : undefined;
 
   return {
     ...base,
@@ -191,6 +243,18 @@ export function mapControlPlaneToDashboard(
       ],
     },
     workflowGraph: graph,
+    agencyRoster: data.data.roster?.length
+      ? data.data.roster.map((item) => ({
+          id: item.id,
+          name: item.name,
+          responsibility: item.responsibility,
+          availability: item.availability,
+          loadPercent: item.loadPercent,
+          queueDepth: item.queueDepth,
+          currentTask: item.currentTask,
+          updatedAt: new Date(item.updatedAt).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: false }),
+        }))
+      : base.agencyRoster,
     commandFlow: recent.slice(0, 6).map((item) => ({
       id: item.id,
       title: item.message,
@@ -209,6 +273,7 @@ export function mapControlPlaneToDashboard(
           : ['영의정'],
       targetOutcome: item.workflowPhase,
     })),
+    selectedCommand,
     conversations: buildConversation(selected),
     bottlenecks:
       data.data.totals.pendingReview > 0
@@ -227,6 +292,20 @@ export function mapControlPlaneToDashboard(
       ...base.runtimeHealth,
       headline: '실데이터 control plane 기준으로 선택 명령의 상태를 반영한 대시보드입니다.',
       signals: [
+        {
+          id: 'signal-selected-command',
+          label: '선택 명령',
+          value: selected?.id ?? '없음',
+          tone: selectedTone,
+          detail: selected ? `${selected.message} / ${selected.nextAction}` : '선택된 명령이 없습니다.',
+        },
+        {
+          id: 'signal-selected-status',
+          label: '선택 검수 상태',
+          value: selectedStatus,
+          tone: selectedTone,
+          detail: selected ? `현재 워크플로 단계: ${selected.workflowPhase}` : '상태 정보 없음',
+        },
         {
           id: 'signal-logs',
           label: 'Control Plane 로그',

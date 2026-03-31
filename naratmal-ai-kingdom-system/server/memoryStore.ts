@@ -82,6 +82,54 @@ export function buildMemorySnapshot(request: UserRequest, limit = 3): MemorySnap
 export function buildControlPlaneSnapshot(limit = 12) {
   const logs = readAllLogs();
   const recent = logs.slice(-limit).reverse();
+  const agentCodeToLabel: Record<string, string> = {
+    chief_agent: '영의정',
+    ops_secretariat: '승정원',
+    strategy_planner: '집현전',
+    design_studio: '도화서',
+    product_engineering: '병조',
+    content_marketing: '예조',
+    audit_guard: '사헌부',
+  };
+
+  const rosterMap = new Map<string, {
+    id: string;
+    name: string;
+    responsibility: string;
+    availability: 'online' | 'degraded' | 'offline';
+    loadPercent: number;
+    queueDepth: number;
+    currentTask: string;
+    updatedAt: string;
+  }>();
+
+  for (const record of recent) {
+    const participants = [record.response?.routing?.leadAgent, ...(record.response?.routing?.supportAgents ?? [])].filter(Boolean) as string[];
+    for (const agentCode of participants) {
+      const name = agentCodeToLabel[agentCode] ?? agentCode;
+      const existing = rosterMap.get(agentCode);
+      const reviewStatus = record.response?.review?.status ?? 'unknown';
+      const availability = reviewStatus === 'blocked' ? 'degraded' : 'online';
+      if (!existing) {
+        rosterMap.set(agentCode, {
+          id: agentCode,
+          name,
+          responsibility: `${name} 담당 업무`,
+          availability,
+          loadPercent: Math.min(35 + participants.length * 12, 95),
+          queueDepth: 1,
+          currentTask: record.request?.message ?? '작업 없음',
+          updatedAt: record.createdAt,
+        });
+      } else {
+        existing.queueDepth += 1;
+        existing.loadPercent = Math.min(existing.loadPercent + 8, 98);
+        existing.currentTask = record.request?.message ?? existing.currentTask;
+        existing.updatedAt = record.createdAt;
+        if (availability === 'degraded') existing.availability = 'degraded';
+      }
+    }
+  }
 
   return {
     totals: {
@@ -90,6 +138,7 @@ export function buildControlPlaneSnapshot(limit = 12) {
       approved: logs.filter((record) => record.response?.review?.status === 'approved').length,
       blocked: logs.filter((record) => record.response?.review?.status === 'blocked').length,
     },
+    roster: Array.from(rosterMap.values()),
     recent: recent.map((record) => ({
       id: record.id,
       rootLogId: record.rootLogId,
@@ -102,6 +151,10 @@ export function buildControlPlaneSnapshot(limit = 12) {
       nextAction: record.response?.workflow?.nextAction ?? '상태 정보 없음',
       createdAt: record.createdAt,
       reviewRound: record.reviewRound,
+      leadAgent: record.response?.routing?.leadAgent,
+      supportAgents: record.response?.routing?.supportAgents ?? [],
+      executionMode: record.response?.execution?.mode ?? 'unknown',
+      resultAgents: (record.response?.results ?? []).map((item) => item.agent),
     })),
   };
 }
