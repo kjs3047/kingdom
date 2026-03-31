@@ -1,15 +1,18 @@
 {
-  "currentGoal": "실데이터 연결용 API/어댑터 설계와 적용",
-  "lastCompleted": "대시보드 MVP 설계문서와 구현 완료",
-  "nextAction": "대시보드 실데이터 연결용 API/adapter 문서와 서버 응답 매핑 설계 추가",
-  "lastUpdatedAt": "2026-03-31T03:40:00.000Z",
+  "currentGoal": "대시보드 실데이터 연결과 운영 안정화",
+  "currentTask": "checkpoint/enforcement 구조를 강화해 멈춤 감지와 다음 작업 예약을 더 강하게 만든다",
+  "nextTask": "ops-checkpoint에 expectedResult와 staleMinutes를 추가하고 enforcement를 5분 기준으로 강화",
+  "expectedResult": "5분 이상 정체 시 실패 판정, currentTask/nextTask/expectedResult 비어 있으면 실패",
+  "lastCompleted": "대시보드 control plane 실데이터 연결 1차 완료",
+  "lastUpdatedAt": "2026-03-31T04:24:00.000Z",
+  "staleMinutes": 5,
   "lastKnownStatus": {
     "build": "pass",
     "server": "running",
     "controlPlane": "pass",
     "bridgeInternal": "pass",
     "bridgeExternal": "pass",
-    "dashboardMvp": "pass"
+    "dashboardLiveAdapter": "pass"
   },
   "recoveryOrder": [
     "server_status_check",

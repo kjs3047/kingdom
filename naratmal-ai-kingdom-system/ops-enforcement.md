@@ -5,12 +5,13 @@
 
 ## 강제 규칙
 1. 응답 후 즉시 첫 tool call 또는 첫 수정이 없으면 실패로 간주한다.
-2. 마지막 tool call 이후 10분 이상 새 실행이 없으면 비정상 상태로 본다.
-3. 다음 1개 작업 단위가 `ops-checkpoint.json`에 없으면 작업 시작 금지.
+2. 마지막 실행 이후 5분 이상 checkpoint가 갱신되지 않으면 비정상 상태로 본다.
+3. `ops-checkpoint.json`에 `currentTask`, `nextTask`, `expectedResult`가 모두 없으면 작업 실패로 본다.
 4. 작업 단위 종료 시 다음 1개 작업 단위를 즉시 checkpoint에 기록한다.
-5. watchdog 결과가 healthy여도 다음 작업이 비어 있으면 운영 실패로 본다.
+5. watchdog이 healthy여도 checkpoint가 stale이면 운영 실패다.
 
 ## 운영 기준
 - 말보다 tool call
 - 설명보다 수정
 - 응답보다 결과
+- 결과 후 즉시 다음 작업 예약

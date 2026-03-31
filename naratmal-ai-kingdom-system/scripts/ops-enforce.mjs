@@ -10,21 +10,48 @@ if (!fs.existsSync(checkpointPath)) {
 }
 
 const checkpoint = JSON.parse(fs.readFileSync(checkpointPath, 'utf8'));
-const nextAction = checkpoint.nextAction?.trim();
+const currentTask = checkpoint.currentTask?.trim();
+const nextTask = checkpoint.nextTask?.trim();
+const expectedResult = checkpoint.expectedResult?.trim();
 const lastUpdatedAt = checkpoint.lastUpdatedAt;
+const staleMinutes = Number(checkpoint.staleMinutes || 5);
 
-if (!nextAction) {
-  console.error('checkpoint nextAction is empty');
+if (!currentTask) {
+  console.error('checkpoint currentTask is empty');
   process.exit(2);
+}
+
+if (!nextTask) {
+  console.error('checkpoint nextTask is empty');
+  process.exit(3);
+}
+
+if (!expectedResult) {
+  console.error('checkpoint expectedResult is empty');
+  process.exit(4);
 }
 
 if (lastUpdatedAt) {
   const elapsedMs = Date.now() - new Date(lastUpdatedAt).getTime();
-  const limitMs = 10 * 60 * 1000;
+  const limitMs = staleMinutes * 60 * 1000;
   if (elapsedMs > limitMs) {
     console.error(`checkpoint stale for ${Math.round(elapsedMs / 60000)} minutes`);
-    process.exit(3);
+    process.exit(5);
   }
 }
 
-console.log(JSON.stringify({ ok: true, now, nextAction, lastUpdatedAt: lastUpdatedAt ?? null }, null, 2));
+console.log(
+  JSON.stringify(
+    {
+      ok: true,
+      now,
+      currentTask,
+      nextTask,
+      expectedResult,
+      lastUpdatedAt: lastUpdatedAt ?? null,
+      staleMinutes,
+    },
+    null,
+    2,
+  ),
+);
