@@ -20,6 +20,6 @@
 
 ## 다음 확장 과제
 1. command 클릭 시 동적으로 `/api/kingdom/logs/:id`를 재호출하는 interaction 추가
-2. OpenClaw 세션 상태를 별도 API로 노출해 dashboard runtime panel과 결합
+2. OpenClaw 세션 상태를 `/api/kingdom/openclaw/status`로 읽어 runtime panel과 결합 완료 (1차)
 3. workflow graph를 단일 command 기준이 아니라 active command별로 전환 가능하게 개선
 4. review history와 action items를 drawer/modal에 연결

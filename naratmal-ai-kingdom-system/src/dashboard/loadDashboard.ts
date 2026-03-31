@@ -1,5 +1,6 @@
 import { kingdomDashboard } from './mockData';
 import { mapControlPlaneToDashboard } from './adapter';
+import { loadSessionSignals } from './loadSessionSignals';
 import type { CommandDetail, KingdomDashboardData } from './types';
 
 async function loadCommandDetail(logId: string): Promise<CommandDetail | undefined> {
@@ -43,12 +44,16 @@ export async function loadDashboardData(): Promise<KingdomDashboardData> {
 
     const mapped = mapControlPlaneToDashboard(json, kingdomDashboard);
     const selectedId = mapped.commandFlow[0]?.id;
-    if (!selectedId) return mapped;
+    const detail = selectedId ? await loadCommandDetail(selectedId) : undefined;
+    const sessionSignals = await loadSessionSignals();
 
-    const detail = await loadCommandDetail(selectedId);
     return {
       ...mapped,
       selectedCommand: detail,
+      runtimeHealth: {
+        ...mapped.runtimeHealth,
+        signals: [...mapped.runtimeHealth.signals, ...sessionSignals],
+      },
     };
   } catch {
     return kingdomDashboard;

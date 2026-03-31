@@ -1,6 +1,8 @@
 import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
+import fs from 'node:fs';
+import path from 'node:path';
 import { z } from 'zod';
 import { runChiefAgent } from './chiefAgent.js';
 import { buildControlPlaneSnapshot, buildMemorySnapshot, persistSessionLog, readSessionLog } from './memoryStore.js';
@@ -67,6 +69,16 @@ app.get('/api/kingdom/policies', (_req, res) => {
 
 app.get('/api/kingdom/control-plane', (_req, res) => {
   return res.json({ ok: true, data: buildControlPlaneSnapshot() });
+});
+
+app.get('/api/kingdom/openclaw/status', (_req, res) => {
+  try {
+    const configPath = path.resolve('C:/Users/old-notebook-kjs/.openclaw/openclaw.json');
+    const raw = fs.readFileSync(configPath, 'utf8');
+    return res.json({ ok: true, data: JSON.parse(raw) });
+  } catch (error) {
+    return res.status(500).json({ ok: false, error: error instanceof Error ? error.message : 'openclaw status read failed' });
+  }
 });
 
 app.get('/api/kingdom/logs/:id', (req, res) => {
