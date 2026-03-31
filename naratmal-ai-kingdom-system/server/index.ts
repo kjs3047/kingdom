@@ -11,9 +11,24 @@ import type { ReviewActionItem, ReviewStatus, UserRequest } from './types.js';
 
 const app = express();
 const port = Number(process.env.PORT || 43110);
+const sseClients = new Set<express.Response>();
 
 app.use(cors());
 app.use(express.json());
+
+function broadcastDashboardUpdate(reason: string) {
+  const payload = JSON.stringify({
+    ok: true,
+    reason,
+    timestamp: new Date().toISOString(),
+    data: buildControlPlaneSnapshot(),
+  });
+
+  for (const client of sseClients) {
+    client.write(`event: dashboard-update\n`);
+    client.write(`data: ${payload}\n\n`);
+  }
+}
 
 const reviewActionItemSchema = z.object({
   code: z.string().min(1),
@@ -140,6 +155,28 @@ app.get('/api/kingdom/control-plane', (_req, res) => {
   return res.json({ ok: true, data: buildControlPlaneSnapshot() });
 });
 
+app.get('/api/kingdom/control-plane/stream', (req, res) => {
+  res.setHeader('Content-Type', 'text/event-stream');
+  res.setHeader('Cache-Control', 'no-cache, no-transform');
+  res.setHeader('Connection', 'keep-alive');
+  res.flushHeaders?.();
+
+  sseClients.add(res);
+
+  res.write(`event: dashboard-ready\n`);
+  res.write(`data: ${JSON.stringify({ ok: true, timestamp: new Date().toISOString(), data: buildControlPlaneSnapshot() })}\n\n`);
+
+  const heartbeat = setInterval(() => {
+    res.write(`event: ping\n`);
+    res.write(`data: ${JSON.stringify({ ok: true, timestamp: new Date().toISOString() })}\n\n`);
+  }, 15000);
+
+  req.on?.('close', () => {
+    clearInterval(heartbeat);
+    sseClients.delete(res);
+  });
+});
+
 app.get('/api/kingdom/openclaw/status', (_req, res) => {
   try {
     const configPath = path.resolve('C:/Users/old-notebook-kjs/.openclaw/openclaw.json');
@@ -176,6 +213,7 @@ app.post('/api/kingdom/respond', (req, res) => {
   Promise.resolve(runChiefAgent(enrichedRequest, { reviewOverrideStatus, reviewOverrideReason, reviewActionItems }))
     .then((response) => {
       const log = persistSessionLog(enrichedRequest, response);
+      broadcastDashboardUpdate('respond');
       return res.json({ ok: true, response, logId: log.id, logPath: log.filePath });
     })
     .catch((error: unknown) => {
@@ -210,6 +248,7 @@ app.post('/api/kingdom/review/decision', (req, res) => {
   )
     .then((response) => {
       const log = persistSessionLog(enrichedRequest, response, { parentLog: existing });
+      broadcastDashboardUpdate('review-decision');
       return res.json({
         ok: true,
         previousLogId: parsed.data.logId,
