@@ -13,11 +13,11 @@ function loadCheckpoint() {
 
 function getSessions() {
   const raw = process.platform === 'win32'
-    ? execFileSync('powershell', ['-NoProfile', '-Command', 'openclaw sessions list --json'], {
+    ? execFileSync('powershell', ['-NoProfile', '-Command', 'openclaw sessions --json --all-agents'], {
         encoding: 'utf8',
         stdio: ['ignore', 'pipe', 'pipe'],
       })
-    : execFileSync('openclaw', ['sessions', 'list', '--json'], {
+    : execFileSync('openclaw', ['sessions', '--json', '--all-agents'], {
         encoding: 'utf8',
         stdio: ['ignore', 'pipe', 'pipe'],
       });
