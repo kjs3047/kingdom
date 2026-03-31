@@ -17,6 +17,7 @@
     "ops:watchdog": "node scripts/ops-watchdog.mjs",
     "ops:enforce": "node scripts/ops-enforce.mjs",
     "ops:next-task": "node scripts/ops-next-task.mjs",
+    "ops:session-sweep": "node scripts/ops-session-sweep.mjs",
     "typecheck:server": "tsc -p tsconfig.server.json",
     "test:e2e": "node scripts/e2e-review-workflow.mjs",
     "build": "npm run typecheck:server && tsc -b && vite build",

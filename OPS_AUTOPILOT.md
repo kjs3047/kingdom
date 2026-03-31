@@ -12,8 +12,9 @@
 ## 점검 우선순위
 1. `session_status`
 2. `subagents(action=list)` 또는 `sessions_list`
-3. 왕국 서버 상태 (`server:status`, `/health`, control plane)
-4. 필요 시 로그 확인
+3. `npm run ops:session-sweep`
+4. 왕국 서버 상태 (`server:status`, `/health`, control plane)
+5. 필요 시 로그 확인
 
 ## 운영 원칙
 - 폐하가 직접 확인하는 역할을 대신하는 것이 영의정의 본분이다.

@@ -32,7 +32,12 @@
 - [ ] 최근 요청 목록 표시 확인
 - [ ] pending/approved/blocked 집계 확인
 
-## 7. 빌드/회귀 검증
+## 7. 세션 정리 점검
+- [ ] `npm run ops:session-sweep`
+- [ ] keep / review / candidate-cleanup 분류 확인
+- [ ] 작업 완료 세션이 cleanup 후보인지 확인
+
+## 8. 빌드/회귀 검증
 - [ ] `npm run typecheck:server`
 - [ ] `npm run build`
 - [ ] `npm run test:e2e`
