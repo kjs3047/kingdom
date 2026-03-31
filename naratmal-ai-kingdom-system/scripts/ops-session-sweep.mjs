@@ -3,9 +3,6 @@ import path from 'node:path';
 import { execFileSync } from 'node:child_process';
 
 const checkpointPath = path.resolve(process.cwd(), 'ops-checkpoint.json');
-const openclawBin = process.platform === 'win32'
-  ? path.resolve(process.env.APPDATA || '', 'npm', 'openclaw.cmd')
-  : 'openclaw';
 
 function loadCheckpoint() {
   if (!fs.existsSync(checkpointPath)) {
@@ -15,10 +12,15 @@ function loadCheckpoint() {
 }
 
 function getSessions() {
-  const raw = execFileSync(openclawBin, ['sessions', 'list', '--json'], {
-    encoding: 'utf8',
-    stdio: ['ignore', 'pipe', 'pipe'],
-  });
+  const raw = process.platform === 'win32'
+    ? execFileSync('powershell', ['-NoProfile', '-Command', 'openclaw sessions list --json'], {
+        encoding: 'utf8',
+        stdio: ['ignore', 'pipe', 'pipe'],
+      })
+    : execFileSync('openclaw', ['sessions', 'list', '--json'], {
+        encoding: 'utf8',
+        stdio: ['ignore', 'pipe', 'pipe'],
+      });
   const parsed = JSON.parse(raw);
   return Array.isArray(parsed) ? parsed : parsed.sessions ?? [];
 }
