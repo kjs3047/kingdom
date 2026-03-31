@@ -15,6 +15,7 @@
     "kingdom:bridge": "node scripts/telegram-kingdom-bridge.mjs",
     "logs:cleanup": "node scripts/cleanup-session-logs.mjs",
     "ops:watchdog": "node scripts/ops-watchdog.mjs",
+    "ops:enforce": "node scripts/ops-enforce.mjs",
     "typecheck:server": "tsc -p tsconfig.server.json",
     "test:e2e": "node scripts/e2e-review-workflow.mjs",
     "build": "npm run typecheck:server && tsc -b && vite build",

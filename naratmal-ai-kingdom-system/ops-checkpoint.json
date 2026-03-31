@@ -1,13 +1,15 @@
 {
-  "currentGoal": "OpenClaw 실운영 전환과 왕국 운영 안정화 유지",
-  "lastCompleted": "적용 직전 최종 검증 통과",
-  "nextAction": "끊김 감지 및 자동 복구 운영 구조 추가",
+  "currentGoal": "실데이터 연결용 API/어댑터 설계와 적용",
+  "lastCompleted": "대시보드 MVP 설계문서와 구현 완료",
+  "nextAction": "대시보드 실데이터 연결용 API/adapter 문서와 서버 응답 매핑 설계 추가",
+  "lastUpdatedAt": "2026-03-31T03:40:00.000Z",
   "lastKnownStatus": {
     "build": "pass",
     "server": "running",
     "controlPlane": "pass",
     "bridgeInternal": "pass",
-    "bridgeExternal": "pass"
+    "bridgeExternal": "pass",
+    "dashboardMvp": "pass"
   },
   "recoveryOrder": [
     "server_status_check",

@@ -15,6 +15,7 @@
 5. 실테스트 보고: `ops-test-report.md`
 6. 테스트 로그 정리: `npm run logs:cleanup`
 7. 끊김 감지/복구 점검: `npm run ops:watchdog`
+8. 작업 정체 강제 점검: `npm run ops:enforce`
 
 ## 아직 남은 리스크
 - 일반 내부 요청의 live 응답 시간 변동
