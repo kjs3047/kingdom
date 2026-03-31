@@ -138,6 +138,13 @@ export interface ReviewActionItem {
   resolved?: boolean;
 }
 
+export interface CommandResultThread {
+  id: string;
+  sender: string;
+  summary: string;
+  output: string[];
+}
+
 export interface CommandDetail {
   id: string;
   message: string;
@@ -150,6 +157,7 @@ export interface CommandDetail {
   executionMode?: string;
   leadAgent?: string;
   supportAgents?: string[];
+  resultThreads?: CommandResultThread[];
 }
 
 export interface KingdomDashboardData {

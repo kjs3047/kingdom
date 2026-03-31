@@ -57,7 +57,13 @@ async function loadCommandDetail(logId: string): Promise<CommandDetail | undefin
       executionMode: json.data.response?.execution?.mode,
       leadAgent: json.data.response?.routing?.leadAgent,
       supportAgents: json.data.response?.routing?.supportAgents ?? [],
-    };
+      resultThreads: (json.data.response?.results ?? []).map((result: any, index: number) => ({
+        id: `${json.data.id}-result-${index}`,
+        sender: result.agent,
+        summary: result.summary,
+        output: Array.isArray(result.output) ? result.output : [],
+      })),
+    } as CommandDetail & { resultThreads?: Array<{ id: string; sender: string; summary: string; output: string[] }> };
   } catch {
     return undefined;
   }
@@ -334,10 +340,63 @@ export async function loadDashboardData(selectedId?: string): Promise<KingdomDas
       };
     });
 
+    const detailedConversations = selectedCommand?.resultThreads?.length
+      ? [
+          {
+            id: `thread-${selectedCommand.id}`,
+            title: selectedCommand.message,
+            participants: [selectedCommand.requester, '영의정', ...(selectedCommand.resultThreads.map((item) => item.sender))],
+            status:
+              selectedCommand.reviewStatus === 'revision_requested' || selectedCommand.reviewStatus === 'blocked'
+                ? 'awaiting_review' as const
+                : selectedCommand.reviewStatus === 'approved' || selectedCommand.reviewStatus === 'not_required'
+                  ? 'completed' as const
+                  : 'executing' as const,
+            messages: [
+              {
+                id: `${selectedCommand.id}-request`,
+                role: 'human' as const,
+                sender: selectedCommand.requester,
+                timestamp: mapped.meta.lastUpdated,
+                summary: selectedCommand.message,
+                nodeId: 'user',
+              },
+              {
+                id: `${selectedCommand.id}-chief`,
+                role: 'chief_agent' as const,
+                sender: '영의정',
+                timestamp: mapped.meta.lastUpdated,
+                summary: `다음 조치: ${selectedCommand.nextAction}`,
+                nodeId: 'chief',
+              },
+              ...selectedCommand.resultThreads.flatMap((thread, index) => [
+                {
+                  id: `${thread.id}-summary`,
+                  role: thread.sender === 'audit_guard' ? 'audit_guard' as const : 'specialist' as const,
+                  sender: thread.sender,
+                  timestamp: mapped.meta.lastUpdated,
+                  summary: thread.summary,
+                  nodeId: index === 0 ? 'lead' : `support-${index - 1}`,
+                },
+                ...thread.output.map((line, outputIndex) => ({
+                  id: `${thread.id}-output-${outputIndex}`,
+                  role: thread.sender === 'audit_guard' ? 'audit_guard' as const : 'specialist' as const,
+                  sender: thread.sender,
+                  timestamp: mapped.meta.lastUpdated,
+                  summary: line,
+                  nodeId: index === 0 ? 'lead' : `support-${index - 1}`,
+                })),
+              ]),
+            ],
+          },
+        ]
+      : mapped.conversations;
+
     return {
       ...mapped,
       agencyRoster: highlightedRoster,
       workflowGraph: selectedGraph,
+      conversations: detailedConversations,
       selectedCommand,
       runtimeHealth: {
         ...mapped.runtimeHealth,

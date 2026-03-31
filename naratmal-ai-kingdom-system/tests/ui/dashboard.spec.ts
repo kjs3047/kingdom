@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-test('dashboard command selection updates visible state', async ({ page }) => {
+test('dashboard command selection updates hero, detail, conversation, and agency state', async ({ page }) => {
   await page.goto('/');
 
   const cards = page.locator('.clickable-card');
@@ -8,15 +8,24 @@ test('dashboard command selection updates visible state', async ({ page }) => {
   const count = await cards.count();
   expect(count).toBeGreaterThan(0);
 
-  const beforeHero = await page.locator('.hero-meta-card strong').first().textContent();
+  const heroBefore = await page.locator('.hero-meta-card strong').first().textContent();
+  const agencyBefore = await page.locator('.panel:has-text("기관 상태") .info-card p').first().textContent();
+  const conversationBefore = await page.locator('.panel:has-text("교신 기록") .message p').first().textContent();
+
   await cards.nth(Math.min(1, count - 1)).click();
-  const afterHero = await page.locator('.hero-meta-card strong').first().textContent();
+
+  const heroAfter = await page.locator('.hero-meta-card strong').first().textContent();
+  const detailEyebrow = page.locator('.panel-eyebrow').filter({ hasText: '선택 명령 분석' }).first();
+  const agencyAfter = await page.locator('.panel:has-text("기관 상태") .info-card p').first().textContent();
+  const conversationAfter = await page.locator('.panel:has-text("교신 기록") .message p').first().textContent();
+
+  await expect(detailEyebrow).toBeVisible();
 
   if (count > 1) {
-    expect(afterHero).not.toBe(beforeHero);
+    expect(heroAfter).not.toBe(heroBefore);
+    expect(agencyAfter).not.toBe(agencyBefore);
+    expect(conversationAfter).not.toBe(conversationBefore);
   }
-
-  await expect(page.locator('.panel-eyebrow').filter({ hasText: '선택 명령 분석' }).first()).toBeVisible();
 });
 
 test('workflow node click updates selected node panel', async ({ page }) => {
