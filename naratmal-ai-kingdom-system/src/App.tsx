@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import {
   AgencyStatusPanel,
   BottlenecksPanel,
+  CommandDetailPanel,
   CommandFlowPanel,
   ConversationLogPanel,
   DashboardHero,
@@ -42,6 +43,7 @@ function App() {
         <AgencyStatusPanel roster={dashboard.agencyRoster} />
         <CommandFlowPanel commands={dashboard.commandFlow} />
         <ConversationLogPanel conversations={dashboard.conversations} />
+        <CommandDetailPanel detail={dashboard.selectedCommand} />
         <BottlenecksPanel incidents={dashboard.bottlenecks} />
       </main>
     </div>

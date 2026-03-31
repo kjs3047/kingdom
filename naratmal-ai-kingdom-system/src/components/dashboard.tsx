@@ -1,6 +1,7 @@
 import type {
   AgentStatus,
   BottleneckIncident,
+  CommandDetail,
   CommandFlowItem,
   ConversationThread,
   ExecutionSnapshot,
@@ -220,9 +221,9 @@ export function WorkflowGraphPanel({
           </article>
           <article className="info-card info-card--warning">
             <span className="info-card-label">Primary Blocker</span>
-            <strong>{activeIncident.title}</strong>
-            <p>{activeIncident.summary}</p>
-            <span className="tone-pill tone-pill--critical">{activeIncident.action}</span>
+            <strong>{activeIncident?.title ?? '없음'}</strong>
+            <p>{activeIncident?.summary ?? '현재 병목 없음'}</p>
+            {activeIncident ? <span className="tone-pill tone-pill--critical">{activeIncident.action}</span> : null}
           </article>
         </div>
       </div>
@@ -292,7 +293,7 @@ export function CommandFlowPanel({ commands }: { commands: CommandFlowItem[] }) 
 
 export function ConversationLogPanel({ conversations }: { conversations: ConversationThread[] }) {
   return (
-    <Panel title="Conversation Log" eyebrow="Agent Dialogue" className="panel--span-8">
+    <Panel title="Conversation Log" eyebrow="Agent Dialogue" className="panel--span-4">
       <div className="conversation-layout">
         {conversations.map((thread) => (
           <article key={thread.id} className="conversation-thread">
@@ -322,6 +323,47 @@ export function ConversationLogPanel({ conversations }: { conversations: Convers
   );
 }
 
+export function CommandDetailPanel({ detail }: { detail?: CommandDetail }) {
+  return (
+    <Panel title="Command Detail" eyebrow="Selected Execution" className="panel--span-4">
+      {detail ? (
+        <div className="stack">
+          <article className="info-card">
+            <strong>{detail.message}</strong>
+            <p className="muted">{detail.id} / {detail.requester}</p>
+            <p>검수 상태: {detail.reviewStatus}</p>
+            <p>다음 조치: {detail.nextAction}</p>
+          </article>
+          <article className="info-card">
+            <strong>Review History</strong>
+            <div className="stack compact-stack">
+              {detail.reviewHistory.map((item) => (
+                <div key={item.logId} className="message message--system">
+                  <div className="row-between">
+                    <strong>Round {item.reviewRound}</strong>
+                    <span className="muted">{item.timestamp}</span>
+                  </div>
+                  <p>{item.status}</p>
+                  <p className="muted">{item.reason}</p>
+                </div>
+              ))}
+            </div>
+          </article>
+          <article className="info-card">
+            <strong>Final Message</strong>
+            <p>{detail.finalMessage}</p>
+          </article>
+        </div>
+      ) : (
+        <article className="info-card">
+          <strong>선택된 명령 없음</strong>
+          <p>control plane 응답에서 상세 명령을 불러오지 못했사옵니다.</p>
+        </article>
+      )}
+    </Panel>
+  );
+}
+
 export function BottlenecksPanel({ incidents }: { incidents: BottleneckIncident[] }) {
   return (
     <Panel title="Bottlenecks" eyebrow="Operational Friction" className="panel--span-12">
@@ -344,7 +386,7 @@ export function BottlenecksPanel({ incidents }: { incidents: BottleneckIncident[
   );
 }
 
-function mapStatusTone(status: CommandFlowItem['status']): RuntimeTone {
+function mapStatusTone(status: CommandFlowItem['status'] | ConversationThread['status']): RuntimeTone {
   switch (status) {
     case 'completed':
       return 'healthy';

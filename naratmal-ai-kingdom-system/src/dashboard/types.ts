@@ -121,6 +121,24 @@ export interface ExecutionSnapshot {
   completedNodeIds: string[];
 }
 
+export interface ReviewHistoryItem {
+  logId: string;
+  status: string;
+  reason: string;
+  reviewRound: number;
+  timestamp: string;
+}
+
+export interface CommandDetail {
+  id: string;
+  message: string;
+  requester: string;
+  reviewStatus: string;
+  nextAction: string;
+  reviewHistory: ReviewHistoryItem[];
+  finalMessage: string;
+}
+
 export interface KingdomDashboardData {
   meta: DashboardMeta;
   overview: OverviewState;
@@ -131,4 +149,5 @@ export interface KingdomDashboardData {
   bottlenecks: BottleneckIncident[];
   runtimeHealth: RuntimeHealthState;
   execution: ExecutionSnapshot;
+  selectedCommand?: CommandDetail;
 }
