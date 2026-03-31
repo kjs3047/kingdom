@@ -1,5 +1,7 @@
 # Naratmal Kingdom 적용 직전 최종 검증
 
+최상위 운영 규칙은 `C:/Users/old-notebook-kjs/.openclaw/workspace/KINGDOM_OPERATING_SYSTEM.md`를, 시스템 운영 기준은 `KINGDOM_SYSTEM_OPERATING_RULES.md`를 따른다.
+
 ## 점검 결과
 1. `npm run build` → PASS
 2. `npm run server:status` → PASS

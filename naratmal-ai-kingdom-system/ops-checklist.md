@@ -1,5 +1,7 @@
 # Naratmal Kingdom 실운영 체크리스트
 
+최상위 운영 규칙은 `C:/Users/old-notebook-kjs/.openclaw/workspace/KINGDOM_OPERATING_SYSTEM.md`를, 시스템 운영 기준은 `KINGDOM_SYSTEM_OPERATING_RULES.md`를 따른다.
+
 ## 1. 서버 상태
 - [ ] `npm run server:status`가 running인지 확인
 - [ ] `/health` 응답 확인

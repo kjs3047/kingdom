@@ -1,5 +1,7 @@
 # Naratmal Kingdom 운영 인계 메모
 
+최상위 운영 규칙은 `C:/Users/old-notebook-kjs/.openclaw/workspace/KINGDOM_OPERATING_SYSTEM.md`를, 시스템 운영 기준은 `KINGDOM_SYSTEM_OPERATING_RULES.md`를 따른다.
+
 ## 지금 가능한 것
 - Telegram 브리지 기반 왕국 요청 처리
 - 검수/재검수 이력 체인 저장

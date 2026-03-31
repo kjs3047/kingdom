@@ -1,5 +1,7 @@
 # 반복 멈춤 해결 구조
 
+최상위 운영 규칙은 `C:/Users/old-notebook-kjs/.openclaw/workspace/KINGDOM_OPERATING_SYSTEM.md`를, 시스템 운영 기준은 `KINGDOM_SYSTEM_OPERATING_RULES.md`를 따른다.
+
 ## 해결 원칙
 - 결과 보고 직후 반드시 다음 작업을 checkpoint에 기록한다.
 - 다음 작업 기록은 수동 서술이 아니라 `npm run ops:next-task` 같은 실행으로 남긴다.

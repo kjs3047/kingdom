@@ -1,5 +1,7 @@
 # Naratmal Kingdom 운영 강제 규칙
 
+최상위 운영 규칙은 `C:/Users/old-notebook-kjs/.openclaw/workspace/KINGDOM_OPERATING_SYSTEM.md`를, 시스템 운영 기준은 `KINGDOM_SYSTEM_OPERATING_RULES.md`를 따른다.
+
 ## 목적
 영의정이 "하겠다"고 응답한 뒤 실제 작업 없이 멈추는 일을 방지한다.
 

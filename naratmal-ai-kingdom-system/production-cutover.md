@@ -1,5 +1,7 @@
 # Naratmal Kingdom 실운영 전환 절차
 
+최상위 운영 규칙은 `C:/Users/old-notebook-kjs/.openclaw/workspace/KINGDOM_OPERATING_SYSTEM.md`를, 시스템 운영 기준은 `KINGDOM_SYSTEM_OPERATING_RULES.md`를 따른다.
+
 ## 1. 사전 준비
 - `C:\Users\old-notebook-kjs\.openclaw\openclaw.json` 백업 확인
 - 왕국 서버 running 확인: `npm run server:status`
