@@ -37,3 +37,20 @@ test('workflow node click updates selected node panel', async ({ page }) => {
 
   await expect(page.locator('.info-card-label').filter({ hasText: '현재 선택 노드' }).first()).toBeVisible();
 });
+
+test('dashboard preserves selected command while polling refresh runs', async ({ page }) => {
+  await page.goto('/');
+
+  const cards = page.locator('.clickable-card');
+  await expect(cards.first()).toBeVisible();
+  const count = await cards.count();
+  if (count < 2) test.skip();
+
+  await cards.nth(1).click();
+  const selectedBefore = await page.locator('.hero-meta-card strong').first().textContent();
+
+  await page.waitForTimeout(6000);
+
+  const selectedAfter = await page.locator('.hero-meta-card strong').first().textContent();
+  expect(selectedAfter).toBe(selectedBefore);
+});

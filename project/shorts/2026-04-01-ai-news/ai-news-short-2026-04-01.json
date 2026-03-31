@@ -1,0 +1,37 @@
+{
+  "title": "오픈AI, 재단 업데이트 발표",
+  "subtitle": "AI는 이제 기능뿐 아니라 거버넌스도 봐야 합니다",
+  "vertical": true,
+  "scenes": [
+    {
+      "start": 0,
+      "end": 4,
+      "headline": "오픈AI, 재단 업데이트 발표",
+      "body": "2026년 3월 24일\nOpenAI Foundation 관련 업데이트 공개"
+    },
+    {
+      "start": 4,
+      "end": 12,
+      "headline": "왜 중요할까?",
+      "body": "이건 단순 제품 뉴스가 아니라\n조직 구조와 공익 방향성 이슈"
+    },
+    {
+      "start": 12,
+      "end": 22,
+      "headline": "AI 경쟁의 변화",
+      "body": "이제는 모델 성능만이 아니라\n누가 어떤 책임 구조로 운영하느냐가 중요"
+    },
+    {
+      "start": 22,
+      "end": 32,
+      "headline": "한 줄 해석",
+      "body": "AI 뉴스는 기능 발표만이 아니라\n거버넌스까지 같이 봐야 한다"
+    },
+    {
+      "start": 32,
+      "end": 40,
+      "headline": "요약",
+      "body": "기술 + 운영 구조\n둘 다 보는 시대"
+    }
+  ]
+}
