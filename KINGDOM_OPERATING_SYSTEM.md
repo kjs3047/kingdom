@@ -35,6 +35,7 @@
 - 모든 큰 작업은 다음 1개 단위 작업으로 쪼갠다.
 - currentTask / nextTask / expectedResult가 비어 있으면 작업 실패다.
 - 작업 단위 완료 시 즉시 다음 작업을 checkpoint에 기록한다.
+- 작업 단위 완료 뒤에는 `ops:post-task-cleanup`으로 세션 정리까지 이어진다.
 
 ### 6. OpenClaw 활용 원칙
 - agents / bindings / sessions / subagents / memory / heartbeat / status 도구를 최대한 활용한다.

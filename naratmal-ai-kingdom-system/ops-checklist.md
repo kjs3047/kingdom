@@ -36,6 +36,8 @@
 - [ ] `npm run ops:session-sweep`
 - [ ] keep / review / candidate-cleanup 분류 확인
 - [ ] 작업 완료 세션이 cleanup 후보인지 확인
+- [ ] `npm run ops:post-task-cleanup`
+- [ ] cleanup 후 남은 세션 수 확인
 
 ## 8. 빌드/회귀 검증
 - [ ] `npm run typecheck:server`
