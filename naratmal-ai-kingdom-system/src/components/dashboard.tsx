@@ -260,12 +260,24 @@ export function AgencyStatusPanel({ roster }: { roster: AgentStatus[] }) {
   );
 }
 
-export function CommandFlowPanel({ commands }: { commands: CommandFlowItem[] }) {
+export function CommandFlowPanel({
+  commands,
+  selectedCommandId,
+  onSelect,
+}: {
+  commands: CommandFlowItem[];
+  selectedCommandId?: string;
+  onSelect?: (id: string) => void;
+}) {
   return (
     <Panel title="Command Flow" eyebrow="Execution Queue" className="panel--span-4">
       <div className="stack">
         {commands.map((command) => (
-          <article key={command.id} className="info-card">
+          <article
+            key={command.id}
+            className={cn('info-card clickable-card', selectedCommandId === command.id && 'info-card--selected')}
+            onClick={() => onSelect?.(command.id)}
+          >
             <div className="row-between">
               <div>
                 <strong>{command.title}</strong>
@@ -347,6 +359,24 @@ export function CommandDetailPanel({ detail }: { detail?: CommandDetail }) {
                   <p className="muted">{item.reason}</p>
                 </div>
               ))}
+            </div>
+          </article>
+          <article className="info-card">
+            <strong>Review Action Items</strong>
+            <div className="stack compact-stack">
+              {detail.reviewActionItems.length ? (
+                detail.reviewActionItems.map((item) => (
+                  <div key={item.code} className="message message--system">
+                    <div className="row-between">
+                      <strong>{item.title}</strong>
+                      <span className="muted">{item.severity}</span>
+                    </div>
+                    <p>{item.detail}</p>
+                  </div>
+                ))
+              ) : (
+                <p className="muted">현재 action item 없음</p>
+              )}
             </div>
           </article>
           <article className="info-card">

@@ -23,6 +23,13 @@ async function loadCommandDetail(logId: string): Promise<CommandDetail | undefin
         reviewRound: item.reviewRound,
         timestamp: item.timestamp,
       })),
+      reviewActionItems: (json.data.response?.review?.actionItems ?? []).map((item: any) => ({
+        code: item.code,
+        title: item.title,
+        detail: item.detail,
+        severity: item.severity,
+        resolved: item.resolved,
+      })),
       finalMessage: json.data.response?.finalMessage ?? '최종 보고 없음',
     };
   } catch {
@@ -30,7 +37,7 @@ async function loadCommandDetail(logId: string): Promise<CommandDetail | undefin
   }
 }
 
-export async function loadDashboardData(): Promise<KingdomDashboardData> {
+export async function loadDashboardData(selectedId?: string): Promise<KingdomDashboardData> {
   try {
     const response = await fetch('/api/kingdom/control-plane');
     if (!response.ok) {
@@ -43,8 +50,8 @@ export async function loadDashboardData(): Promise<KingdomDashboardData> {
     }
 
     const mapped = mapControlPlaneToDashboard(json, kingdomDashboard);
-    const selectedId = mapped.commandFlow[0]?.id;
-    const detail = selectedId ? await loadCommandDetail(selectedId) : undefined;
+    const targetId = selectedId ?? mapped.commandFlow[0]?.id;
+    const detail = targetId ? await loadCommandDetail(targetId) : undefined;
     const sessionSignals = await loadSessionSignals();
 
     return {

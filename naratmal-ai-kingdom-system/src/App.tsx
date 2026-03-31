@@ -17,10 +17,11 @@ import type { KingdomDashboardData } from './dashboard/types';
 
 function App() {
   const [dashboard, setDashboard] = useState<KingdomDashboardData>(kingdomDashboard);
+  const [selectedCommandId, setSelectedCommandId] = useState<string | undefined>(undefined);
 
   useEffect(() => {
-    loadDashboardData().then(setDashboard);
-  }, []);
+    loadDashboardData(selectedCommandId).then(setDashboard);
+  }, [selectedCommandId]);
 
   return (
     <div className="app-shell">
@@ -41,7 +42,11 @@ function App() {
           execution={dashboard.execution}
         />
         <AgencyStatusPanel roster={dashboard.agencyRoster} />
-        <CommandFlowPanel commands={dashboard.commandFlow} />
+        <CommandFlowPanel
+          commands={dashboard.commandFlow}
+          selectedCommandId={selectedCommandId ?? dashboard.commandFlow[0]?.id}
+          onSelect={setSelectedCommandId}
+        />
         <ConversationLogPanel conversations={dashboard.conversations} />
         <CommandDetailPanel detail={dashboard.selectedCommand} />
         <BottlenecksPanel incidents={dashboard.bottlenecks} />

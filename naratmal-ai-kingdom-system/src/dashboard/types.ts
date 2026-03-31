@@ -129,6 +129,14 @@ export interface ReviewHistoryItem {
   timestamp: string;
 }
 
+export interface ReviewActionItem {
+  code: string;
+  title: string;
+  detail: string;
+  severity: string;
+  resolved?: boolean;
+}
+
 export interface CommandDetail {
   id: string;
   message: string;
@@ -136,6 +144,7 @@ export interface CommandDetail {
   reviewStatus: string;
   nextAction: string;
   reviewHistory: ReviewHistoryItem[];
+  reviewActionItems: ReviewActionItem[];
   finalMessage: string;
 }
 
