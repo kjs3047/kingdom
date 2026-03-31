@@ -80,9 +80,115 @@ export async function loadDashboardData(selectedId?: string): Promise<KingdomDas
     const detail = targetId ? await loadCommandDetail(targetId) : undefined;
     const sessionSignals = await loadSessionSignals();
 
+    const selectedCommand = detail ?? mapped.selectedCommand;
+    const selectedExecutionMode = selectedCommand?.executionMode ?? 'unknown';
+    const selectedLeadAgent = selectedCommand?.leadAgent ?? '영의정';
+    const selectedSupportAgents = selectedCommand?.supportAgents ?? [];
+
+    const selectedGraph = selectedCommand
+      ? {
+          nodes: [
+            {
+              id: 'user',
+              label: selectedCommand.requester,
+              kind: 'command' as const,
+              state: 'complete' as const,
+              lane: '명령 유입',
+              owner: 'Telegram',
+              detail: selectedCommand.message,
+              x: 6,
+              y: 18,
+              duration: '접수 완료',
+            },
+            {
+              id: 'chief',
+              label: '영의정',
+              kind: 'analysis' as const,
+              state: 'complete' as const,
+              lane: '조정',
+              owner: 'main',
+              detail: `${selectedLeadAgent} 중심 배분`,
+              x: 26,
+              y: 18,
+              duration: selectedExecutionMode,
+            },
+            {
+              id: 'lead',
+              label: selectedLeadAgent,
+              kind: 'analysis' as const,
+              state: selectedCommand.reviewStatus === 'approved' || selectedCommand.reviewStatus === 'not_required' ? 'complete' as const : 'running' as const,
+              lane: '주관 기관',
+              owner: selectedLeadAgent,
+              detail: `주관 처리 / 다음 조치: ${selectedCommand.nextAction}`,
+              x: 46,
+              y: 10,
+              duration: selectedExecutionMode,
+            },
+            ...selectedSupportAgents.map((agent, index) => ({
+              id: `support-${index}`,
+              label: agent,
+              kind: 'analysis' as const,
+              state: 'queued' as const,
+              lane: '보조 기관',
+              owner: agent,
+              detail: `${agent} 보조 참여`,
+              x: 46,
+              y: 26 + index * 14,
+              duration: '보조',
+            })),
+            {
+              id: 'review',
+              label: '사헌부 검수',
+              kind: 'review' as const,
+              state:
+                selectedCommand.reviewStatus === 'revision_requested' || selectedCommand.reviewStatus === 'blocked'
+                  ? 'blocked' as const
+                  : selectedCommand.reviewStatus === 'approved'
+                    ? 'complete' as const
+                    : 'idle' as const,
+              lane: '검수',
+              owner: 'audit_guard',
+              detail: `검수 상태: ${selectedCommand.reviewStatus}`,
+              x: 70,
+              y: 18,
+              duration: selectedCommand.reviewStatus,
+            },
+            {
+              id: 'report',
+              label: '폐하 보고',
+              kind: 'delivery' as const,
+              state:
+                selectedCommand.reviewStatus === 'approved' || selectedCommand.reviewStatus === 'not_required'
+                  ? 'complete' as const
+                  : 'waiting' as const,
+              lane: '출고',
+              owner: '영의정',
+              detail: selectedCommand.finalMessage,
+              x: 90,
+              y: 18,
+              duration: '보고',
+            },
+          ],
+          edges: [
+            { id: 'edge-user-chief', from: 'user', to: 'chief', condition: 'default' as const, label: '명 하달' },
+            { id: 'edge-chief-lead', from: 'chief', to: 'lead', condition: 'handoff' as const, label: '주관 배정' },
+            ...selectedSupportAgents.map((agent, index) => ({
+              id: `edge-lead-support-${index}`,
+              from: 'lead',
+              to: `support-${index}`,
+              condition: 'handoff' as const,
+              label: `${agent} 협업`,
+            })),
+            { id: 'edge-lead-review', from: 'lead', to: 'review', condition: 'guardrail' as const, label: '검수 판단' },
+            { id: 'edge-review-report', from: 'review', to: 'report', condition: 'feedback' as const, label: '출고/보류' },
+          ],
+        }
+      : mapped.workflowGraph;
+
     return {
       ...mapped,
-      selectedCommand: detail,
+      workflowGraph: selectedGraph,
+      selectedCommand,
       runtimeHealth: {
         ...mapped.runtimeHealth,
         signals: [...mapped.runtimeHealth.signals, ...sessionSignals],
