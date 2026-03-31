@@ -51,8 +51,8 @@ npm run test:e2e
 ## 현재 단계
 이 버전은 **오케스트레이션 MVP + 로컬 telegram_gateway 서버 뼈대**를 포함한다.
 실운영 점검은 `ops-checklist.md`를 기준으로 수행한다.
+운영 인계는 `ops-handover.md`, 실바인딩 적용은 `openclaw-kingdom-binding.checklist.md`를 기준으로 본다.
 다음 단계:
 1. OpenClaw 기존 Telegram 채널 설정에 나랏말 AI 왕국 agent/binding 연결
-2. 실제 LLM/provider 호출로 mock runner 교체
-3. 세션 메모리 저장 고도화
-4. OpenClaw 이벤트/메시지 연동
+2. 일반 내부 요청 live 안정화(timeout/retry/fallback)
+3. 운영 문서 고정 및 실제 DM 최종 확인

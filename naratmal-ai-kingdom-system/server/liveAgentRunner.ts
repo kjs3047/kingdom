@@ -1,4 +1,5 @@
 import { execFile } from 'node:child_process';
+import process from 'node:process';
 import { promisify } from 'node:util';
 import type { AgentCode, AgentResult, AgentTask, UserRequest } from './types.js';
 
@@ -52,15 +53,32 @@ function parseAgentText(agent: AgentCode, text: string): AgentResult {
 export async function runLiveAgentTask(task: AgentTask, request: UserRequest): Promise<AgentResult> {
   const agent = task.agent as Exclude<AgentCode, 'chief_agent'>;
   const prompt = buildPrompt(task, request);
-  const openclawEntry = 'C:\\Users\\old-notebook-kjs\\AppData\\Roaming\\npm\\node_modules\\openclaw\\openclaw.mjs';
-  const { stdout } = await execFileAsync('node', [openclawEntry, 'agent', '--agent', cliAgentMap[agent], '--message', prompt, '--json'], {
-    cwd: process.env.KINGDOM_WORKSPACE_DIR || 'C:\\Users\\old-notebook-kjs\\.openclaw\\workspace',
-    windowsHide: true,
-    timeout: Number(process.env.KINGDOM_LIVE_TIMEOUT_MS || 45000),
-    maxBuffer: 1024 * 1024,
-  });
+  const openclawEntry = process.env.OPENCLAW_ENTRY || 'C:\\Users\\old-notebook-kjs\\AppData\\Roaming\\npm\\node_modules\\openclaw\\openclaw.mjs';
+  const timeoutMs = Number(process.env.KINGDOM_LIVE_TIMEOUT_MS || 30000);
+  const retries = Number(process.env.KINGDOM_LIVE_RETRY_COUNT || 1);
 
-  const parsed = JSON.parse(stdout) as unknown;
-  const text = extractText(parsed);
-  return parseAgentText(task.agent, text);
+  let lastError: unknown;
+  for (let attempt = 0; attempt <= retries; attempt += 1) {
+    try {
+      const { stdout } = await execFileAsync(
+        'node',
+        [openclawEntry, 'agent', '--agent', cliAgentMap[agent], '--message', prompt, '--json'],
+        {
+          cwd: process.env.KINGDOM_WORKSPACE_DIR || 'C:\\Users\\old-notebook-kjs\\.openclaw\\workspace',
+          windowsHide: true,
+          timeout: timeoutMs,
+          maxBuffer: 1024 * 1024,
+        },
+      );
+
+      const parsed = JSON.parse(stdout) as unknown;
+      const text = extractText(parsed);
+      return parseAgentText(task.agent, text);
+    } catch (error) {
+      lastError = error;
+      if (attempt === retries) break;
+    }
+  }
+
+  throw lastError instanceof Error ? lastError : new Error('live agent execution failed');
 }
