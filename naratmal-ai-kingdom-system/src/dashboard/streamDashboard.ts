@@ -6,7 +6,17 @@ export function subscribeDashboardStream(
   onData: (data: KingdomDashboardData) => void,
   onError?: (error: unknown) => void,
 ) {
-  const source = new EventSource('/api/kingdom/control-plane/stream');
+  if (typeof window === 'undefined' || typeof window.EventSource === 'undefined') {
+    return () => {};
+  }
+
+  let source: EventSource;
+  try {
+    source = new EventSource('/api/kingdom/control-plane/stream');
+  } catch (error) {
+    onError?.(error);
+    return () => {};
+  }
 
   const refresh = async () => {
     try {

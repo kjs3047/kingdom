@@ -47,6 +47,9 @@ function App() {
         setDashboard(data);
         setSelectedCommandId((current) => current ?? data.commandFlow[0]?.id);
       },
+      () => {
+        // SSE 실패 시에도 polling이 계속 유지되므로 화면 자체는 살아 있게 둔다.
+      },
     );
     const interval = window.setInterval(() => {
       refresh(true);
