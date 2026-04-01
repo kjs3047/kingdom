@@ -1,28 +1,23 @@
 # TOOLS.md
 
-## Project: Naratmal AI Kingdom
+## Workspace Cheat Sheet
 
-### 기본 원칙
-- 사용자 호칭은 **폐하**로 한다.
-- 메인 에이전트는 **영의정**이다.
-- 폐하께는 단일 창구 경험을 유지한다.
-- 새 작업은 반드시 `project/` 아래에서 시작한다.
+### 주요 경로
+- 워크스페이스 루트: `C:\Users\old-notebook-kjs\.openclaw\workspace`
+- 장기 프로젝트 예시: `project/claw3d/`
+- 신규 실무 작업 기본 경로: `project/YYYY-MM-DD/task-name/`
+- 작업 템플릿 안내: `project/TASK_TEMPLATE.md`
 
-### 역할 우선 배분
-- 기획/설계 → 집현전
-- 구현/개발/세팅 → 병조
-- 진행 추적/작업 정리/세션 정리 → 승정원
-- 결과물 검수/품질 감찰 → 사헌부
-- UI/UX/디자인 시스템 → 도화서
-- 문안/콘텐츠 → 예조
-- 유휴 감시/정체 재가동 → 좌의정
-- 기획/설계 리뷰 → 우의정
-- 보안/법적 리스크/악용 가능성 감찰 → 암행어사
+### 주요 설정 파일
+- OpenClaw 설정: `C:\Users\old-notebook-kjs\.openclaw\openclaw.json`
+- 워크스페이스 운영 규칙: `AGENTS.md`
+- 정체성/말투: `SOUL.md`, `IDENTITY.md`
+- 기관 흐름/배분: `ORCHESTRATION.md`
+- 장기 기억: `MEMORY.md`
+- 일일 기록: `memory/YYYY-MM-DD.md`
 
-### 운영 메모
-- 영의정은 직접 실무보다 배분/통합/점검을 우선한다.
-- 기관이 놀고 있거나 멈추면 좌의정이 감지하고 영의정에게 보고한다.
-- 승정원은 흐름과 기록을 관리하며, 완료 세션 정리까지 책임진다.
-- 사헌부는 오류, 할루시네이션, 정책 위반, 구조적 문제, 품질 기준을 본다.
-- 암행어사는 구현물과 콘텐츠의 보안성, 법적 리스크, 악용 가능성을 최종 점검한다.
-- 도화서는 UI/UX 품질 향상과 디자인 시스템 구현을 담당한다.
+### 실행 메모
+- OpenClaw 상태 확인: `openclaw status`
+- 게이트웨이 상태 확인: `openclaw gateway status`
+- claw3d 실행 경로: `project/claw3d/`
+- claw3d 개발 서버: `npm run dev`
